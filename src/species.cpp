@@ -1637,14 +1637,14 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j,
 	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
 
 	// Compute normalization constant
-			//Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
+			Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
 	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
-			//Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
+			Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
 
 	// Compute unnormalized probability
-			//Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
+			Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
 	double log_K{compute_Kprior_unnormalized_recursive(k, n_i, gamma)};
-			//Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+			Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
 
 	//return 
 	return std::exp(log_V + log_K);
