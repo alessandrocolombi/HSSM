@@ -290,6 +290,25 @@ Rcpp::List Expected_prior_c(const Rcpp::NumericVector& n_j, const Rcpp::NumericV
 Rcpp::List Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
 						    const Rcpp::String& type, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, double tol);
 
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Upper bounds
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//' 
+// [[Rcpp::export]]
+Rcpp::NumericVector Sums_logC(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j);
+
+//' 
+// [[Rcpp::export]] 
+Rcpp::NumericVector UpperBounds_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
+								  const Rcpp::List& prior_param, unsigned int M_max  );
+
+//' 
+// [[Rcpp::export]] 
+Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
+								  const Rcpp::List& prior_param, unsigned int M_max  );
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------

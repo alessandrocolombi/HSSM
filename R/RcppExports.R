@@ -102,6 +102,21 @@ Expected_posterior_c <- function(k, m_j, n_j, gamma_j, type, prior, prior_param,
     .Call(`_HSSM_Expected_posterior_c`, k, m_j, n_j, gamma_j, type, prior, prior_param, M_max, tol)
 }
 
+#' 
+Sums_logC <- function(n_j, gamma_j) {
+    .Call(`_HSSM_Sums_logC`, n_j, gamma_j)
+}
+
+#' 
+UpperBounds_c <- function(n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_UpperBounds_c`, n_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
+LowerBounds_c <- function(n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_LowerBounds_c`, n_j, gamma_j, prior, prior_param, M_max)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

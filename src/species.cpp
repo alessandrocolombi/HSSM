@@ -1901,6 +1901,139 @@ Rcpp::List Expected_posterior_c(const unsigned int& k, const Rcpp::NumericVector
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Upper bounds
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Rcpp::NumericVector Sums_logC(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j)
+{
+	// checks
+	if(n_j.size() != 2)
+		throw std::runtime_error("Error in LowerBounds: only d=2 case is implemented");
+	if(gamma_j.size() != 2)
+		throw std::runtime_error("Error in LowerBounds: only d=2 case is implemented");
+
+	const unsigned int n{n_j[0]+n_j[1]};
+	unsigned int K{1};
+	std::vector< std::vector<double> > a_old;
+	std::vector<double> b;
+	Rcpp::NumericVector res(n);
+	double inf = std::numeric_limits<double>::infinity();
+	// Compute all C numbers required
+	Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+	Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+	std::vector<double> absC1v(n+1,-inf);
+	std::copy(absC1.begin(),absC1.end(),absC1v.begin());
+
+	//1) First case: K=1
+	std::vector< std::vector<double> > a(K+1);
+	a[0].resize(1);
+	a[0][0] = absC2[1];
+
+	a[1].resize(2);
+	a[1][0] = absC2[1];
+	a[1][1] = absC2[0];
+
+	// compute log double sum
+	b.clear();
+	b.resize(K+1, -inf);
+	std::transform(a.cbegin(),a.cend(),absC1v.cbegin(),b.begin(),[](const std::vector<double>& a_i, const double& lC_1i){ return(log_stable_sum(a_i,TRUE)+lC_1i); });
+	res[K-1] = log_stable_sum(b,TRUE);
+
+	// get ready for the next K
+	K++;
+	a_old = a;
+
+	//2) All other cases
+	while(K<=n){
+		a.resize(K+1);  
+		for(unsigned int k = 0; k <= K; ++k){
+			a[k].clear();
+			a[k].resize(1+k, -inf); // resize correct number of terms and set all elements to -inf
+			if(K <= n_j[1]) // fill the second element (if possible)
+				a[k][0] = absC2[K];
+			if(k > 0) // copy from old vector 
+				std::copy(a_old[k-1].begin(),a_old[k-1].end(), a[k].begin()+1);
+
+			//Rcpp::Rcout<<"Stampo a["<<k<<"]: ";		
+				//for(auto __v : a[k])
+					//Rcpp::Rcout<<__v<<", ";
+			//Rcpp::Rcout<<std::endl;
+			
+			//Check for User Interruption
+			try{
+			    Rcpp::checkUserInterrupt();
+			}
+			catch(Rcpp::internal::InterruptedException e){ 
+			    //Print error and return
+			    throw std::runtime_error("Execution stopped by the user");
+			}
+
+		}
+
+		// compute log double sum
+		b.clear();
+		b.resize(K+1, -inf);
+		std::transform(a.cbegin(),a.cend(),absC1v.cbegin(),b.begin(),[](const std::vector<double>& a_i, const double& lC_1i){ return(log_stable_sum(a_i,TRUE)+lC_1i); });
+		res[K-1] = log_stable_sum(b,TRUE);
+				//Rcpp::Rcout<<"res["<<K-1<<"] = "<<res[K-1]<<std::endl;
+				//throw std::runtime_error("FERMO IO");
+		// get ready for the next K
+		K++;
+		a_old = a;
+	}
+
+	return(res);
+}
+
+Rcpp::NumericVector UpperBounds_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
+					              const Rcpp::List& prior_param, unsigned int M_max  )
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const unsigned int n = n_j[0]+n_j[1];
+
+	// Compute V
+	Rcpp::NumericVector V_vect(n);
+	Rcpp::NumericVector logKfact(n);
+	for(unsigned int k=1;k<=n;++k){
+		V_vect[k-1] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
+		logKfact[k-1] = gsl_sf_lnfact(k);
+	}
+
+	// Compute Sums C numbers
+	Rcpp::NumericVector SumslogC = Sums_logC(n_j, gamma_j);
+
+	Rcpp::NumericVector res = SumslogC + V_vect + logKfact;
+
+	//return 
+	return res;
+}
+
+Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
+					              const Rcpp::List& prior_param, unsigned int M_max  )
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const unsigned int n = n_j[0]+n_j[1];
+
+	// Compute V
+	Rcpp::NumericVector V_vect(n);
+	for(unsigned int k=1;k<=n;++k){
+		V_vect[k-1] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
+	}
+
+	// Compute Sums C numbers
+	Rcpp::NumericVector SumslogC = Sums_logC(n_j, gamma_j);
+	Rcpp::NumericVector res = SumslogC + V_vect;
+
+	//return 
+	return res;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 

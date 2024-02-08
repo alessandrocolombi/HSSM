@@ -2,8 +2,10 @@
 
 export(Expected_posterior)
 export(Expected_prior)
+export(LowerBounds)
 export(Test_Prior)
 export(Test_prod_sum)
+export(UpperBounds)
 export(compute_Pochhammer)
 export(compute_logC)
 export(compute_log_Pochhammer)
