@@ -6,9 +6,17 @@
 
 #include "ComponentPrior.h"
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	General showMe
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
 std::string ComponentPrior::showMe() const{
 	return name;
 }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Poisson
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 
 unsigned int Poisson1::get_mode() const{
 	return (static_cast<unsigned int>( std::floor(Lambda) ) + 1);
@@ -32,6 +40,24 @@ double Poisson1::log_eval_prob(unsigned int const & k) const{
 	else
 		return (-Lambda + (k-1)*std::log(Lambda) - gsl_sf_lnfact(k-1) );
 } 
+
+double Poisson1::eval_upper_tail(unsigned int const &  k) const{
+	if(k == 0)
+		return 1.0;
+	else
+		return gsl_cdf_poisson_Q(k-1, Lambda);
+} 
+
+double Poisson1::eval_lower_tail(unsigned int const &  k) const{
+	if(k == 0)
+		return 0.0;
+	else
+		return gsl_cdf_poisson_P(k-1, Lambda);
+} 
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	NegativeBinomial
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 
 unsigned int NegativeBinomial1::get_mode() const{
 	if(n <= 1)
@@ -60,4 +86,18 @@ double NegativeBinomial1::log_eval_prob(unsigned int const & k) const{
 		
 	}
 	
+} 
+
+double NegativeBinomial1::eval_upper_tail(unsigned int const &  k) const{
+	if(k == 0)
+		return 1.0;
+	else
+		return gsl_cdf_negative_binomial_Q(k-1, p, (double)n);
+} 
+
+double NegativeBinomial1::eval_lower_tail(unsigned int const &  k) const{
+	if(k == 0)
+		return 0.0;
+	else
+		return gsl_cdf_negative_binomial_P(k-1, p, (double)n);
 } 

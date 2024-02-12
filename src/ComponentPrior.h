@@ -15,6 +15,8 @@ public :
     virtual unsigned int get_mode() const = 0;
     virtual double eval_prob(unsigned int const &  k) const = 0;
     virtual double log_eval_prob(unsigned int const & k) const = 0;
+    virtual double eval_upper_tail(unsigned int const &  k) const = 0;
+    virtual double eval_lower_tail(unsigned int const &  k) const = 0;
     virtual ~ComponentPrior() = default;
 private :    
     std::string name;
@@ -32,6 +34,8 @@ public:
     unsigned int get_mode() const override;
     double eval_prob(unsigned int const & k) const override;
     double log_eval_prob(unsigned int const & k) const override;
+    double eval_upper_tail(unsigned int const & k) const override;
+    double eval_lower_tail(unsigned int const & k) const override;
 private:    
     double Lambda;
 };
@@ -53,6 +57,8 @@ public:
     unsigned int get_mode() const override;
     double eval_prob(unsigned int const & k) const override;
     double log_eval_prob(unsigned int const & k) const override;
+    double eval_upper_tail(unsigned int const & k) const override;
+    double eval_lower_tail(unsigned int const & k) const override;
 private:    
     double p;
     unsigned int n;

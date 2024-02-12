@@ -117,6 +117,11 @@ LowerBounds_c <- function(n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_LowerBounds_c`, n_j, gamma_j, prior, prior_param, M_max)
 }
 
+#' 
+D_distinct_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kexact) {
+    .Call(`_HSSM_D_distinct_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kexact)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

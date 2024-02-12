@@ -458,3 +458,45 @@ LowerBounds = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
   # Compute non trivial cases
   return (  LowerBounds_c(n_j,gamma,prior,prior_params,Max_iter)  )
 }
+
+#' Compute prior distribution
+#' @export
+D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, Kexact = 100){
+  l = list(...)
+  L = length(l)
+
+  #checks
+  if(length(n_j)!=length(gamma))
+    stop("The length of n_j must be equal to the length of gamma")
+  if( any(n_j<0) || any(gamma<=0) )
+    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
+  if(Max_iter<=0)
+    stop("The number of iterations must be strictly positive")
+  if(Kexact<=1)
+    stop("The number of atoms whose probability is computed exactly must be strictly larger than 1");
+
+  # read prior parameters
+  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
+  if(prior == "Poisson"){
+    if(L!=1)
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
+    if(! names(l)=="lambda")
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
+
+    prior_params$lambda = l$lambda
+  }
+  else if(prior == "NegativeBinomial"){
+    if(L!=2)
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
+    if( !any(! names(l) %in% names(prior_params)) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+
+    prior_params$r = l$r
+    prior_params$p = l$p
+  }
+  else
+    stop("prior can only be equal to Poisson or NegativeBinomial")
+
+  # Compute non trivial cases
+  return (  D_distinct_prior_c(n_j,gamma,prior,prior_params,Max_iter,Kexact)  )
+}

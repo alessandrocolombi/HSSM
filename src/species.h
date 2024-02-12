@@ -2,10 +2,11 @@
 #define __SPECIES_HPP__
 
 #define STRICT_R_HEADERS
-//#include <Rcpp.h>
-//#include <RcppEigen.h>
-//#include "include_headers.h"
-//#include "recurrent_traits.h"
+
+// [[Rcpp::depends(RcppProgress)]]
+#include <progress.hpp>      // For progress bar
+#include <progress_bar.hpp>
+
 #include "GSL_wrappers.h"
 #include <gsl/gsl_sf.h>
 #include "ComponentPrior_factory.h"
@@ -189,6 +190,11 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 //Direct formula per d=1 or d=2
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
+//Direct formula per d=1 or d=2 but the vector with C numbers is passed as input
+double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, 
+									const std::vector<double>& gamma,
+									const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2);
+
 //Recursive formula for d>2
 double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
@@ -308,6 +314,17 @@ Rcpp::NumericVector UpperBounds_c(const std::vector<unsigned int>& n_j, const st
 // [[Rcpp::export]] 
 Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
 								  const Rcpp::List& prior_param, unsigned int M_max  );
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Compute whole distributions
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Compute the whole distribution for the prior number of distinct components
+//' 
+// [[Rcpp::export]] 
+Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
+					              		const Rcpp::List& prior_param, unsigned int M_max, const unsigned int& Kexact );
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
