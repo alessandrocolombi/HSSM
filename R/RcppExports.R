@@ -60,6 +60,13 @@ compute_log_Pochhammer <- function(x, a) {
     .Call(`_HSSM_compute_log_Pochhammer`, x, a)
 }
 
+#' Zeta Riemann function in log scale
+#'
+#' @export
+log_zeta_Riemann <- function(s) {
+    .Call(`_HSSM_log_zeta_Riemann`, s)
+}
+
 #' compute_logC - Compute log of absolute values of non Central C number
 #'
 #' \loadmathjax This is the main function in the computation of C numbers. It uses the (2.69) formula in the "Combinatorial methods in discrete distributions" book.
@@ -70,6 +77,38 @@ compute_log_Pochhammer <- function(x, a) {
 #' @export
 compute_logC <- function(n, scale, location) {
     .Call(`_HSSM_compute_logC`, n, scale, location)
+}
+
+#' All terms of V
+#'
+#' This function returns the log of all terms in V, from m=0 up to M_max
+#' @export
+log_Vprior_long <- function(k, n_i, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_log_Vprior_long`, k, n_i, gamma, prior, prior_param, M_max)
+}
+
+#' V approximation - Zeta Riemann
+#'
+#' Non usare questa funzione. Non ci sono funzioni che implementino il log della zeta-Riemann. Quindi ho problemi numerici e non va
+#' @export
+log_Vprior_apprx1 <- function(k, n_i, tol, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_log_Vprior_apprx1`, k, n_i, tol, gamma, prior, prior_param, M_max)
+}
+
+#' V approximation - Under threshold
+#'
+#' This approximation has no theoretical guarantees
+#' @export
+log_Vprior_apprx2 <- function(k, n_i, tol, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_log_Vprior_apprx2`, k, n_i, tol, gamma, prior, prior_param, M_max)
+}
+
+#' V approximation - Compute Upper tail
+#'
+#' Non posso calcolare direttamente il log di P(M>N+K). Usala solo se gamma è molto piccolo o n_j è molto grande.
+#' @export
+log_Vprior_apprx3 <- function(k, n_i, tol, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_log_Vprior_apprx3`, k, n_i, tol, gamma, prior, prior_param, M_max)
 }
 
 #' 

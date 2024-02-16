@@ -271,6 +271,10 @@ double compute_log_Pochhammer(const unsigned int& x, const double& a)
 }
 
 
+double log_zeta_Riemann(double s){
+	return( std::log(std::riemann_zetal(s)) );
+}
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	C numbers
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -425,6 +429,247 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Approximations for V
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+std::vector<double> log_Vprior_long(const unsigned int& k, const std::vector<unsigned int>& n_i, 
+									const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									unsigned int M_max )
+{
+
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Initialize vector of results
+	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
+	// Initialize quantities to find the maximum
+	unsigned int idx_max{0};
+	double val_max(log_vect_res[idx_max]);
+
+	// Start the loop, let us compute all the elements
+	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
+		//Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
+		// Formula implementation
+		
+		log_vect_res[Mstar] = log_raising_factorial(k,Mstar+1 ) +
+							  qM.log_eval_prob(Mstar + k) -
+							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(Mstar + k) );}
+			       					   			);
+		      					   			       					   		
+		// Check if it is the new maximum
+        if(log_vect_res[Mstar]>val_max){
+        	idx_max = Mstar;
+        	val_max = log_vect_res[Mstar];
+        }
+
+	}
+	// Formula to compute the log of all the sums in a stable way
+	return log_vect_res;
+}
+
+int log_Vprior_apprx1(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+									  const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									  unsigned int M_max )
+{
+
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Constant term
+	int n = std::accumulate(n_i.cbegin(),n_i.cend(),0.0);
+	if(n-k < 2)
+		throw std::runtime_error("Error in log_Vprior_apprx1: this approximation only works if K < n-1 ");
+	double log_constant = 0.5*( std::log( std::exp(2.0)*k ) - std::log( 2.0*M_PI ) );
+	log_constant -= std::inner_product( 	n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+				       					   	[](const unsigned int& nj, const double& gamma_j){
+				       					   		return (nj * std::log(gamma_j) );
+				       					   	}
+			       					  );
+
+	Rcpp::Rcout<<"log_constant:"<<std::endl<<log_constant<<std::endl;
+	Rcpp::Rcout<<"std::log(tol)-log_constant:"<<std::endl<<std::log(tol)-log_constant<<std::endl;
+
+	double log_z = std::log(std::riemann_zetal((double)(n-k)));
+
+	int N{1};
+	std::vector<double> resto;
+	resto.reserve(M_max);
+	double log_res{0.0};
+	while(N<=M_max){
+		Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+		resto.push_back(-std::log((double)N)*(double)(n-k));
+		double log_resto = log_stable_sum(resto,TRUE);
+
+		Rcpp::Rcout<<"log_z:"<<std::endl<<log_z<<std::endl;
+		Rcpp::Rcout<<"log_resto:"<<std::endl<<log_resto<<std::endl;
+		Rcpp::Rcout<<"diff:"<<std::endl<<std::exp(log_z)-std::exp(log_resto)<<std::endl;
+
+		log_res = log_z + std::log(1-std::exp(log_resto-log_z) );
+		if(log_res < std::log(tol)-log_constant){
+			break;
+		}
+		N++;
+	}
+	
+	// Formula to compute the log of all the sums in a stable way
+	return N;
+}
+
+int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max )
+{
+
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	// Constant term
+	int n = std::accumulate(n_i.cbegin(),n_i.cend(),0.0);
+
+	double log_constant = 0.5*( std::log( std::exp(2.0)*k ) - std::log( 2.0*M_PI ) );
+	log_constant -= std::inner_product( 	n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+				       					   	[](const unsigned int& nj, const double& gamma_j){
+				       					   		return (nj * std::log(gamma_j) );
+				       					   	}
+			       					  );
+
+	int N{qM.get_mode()};
+	while(N<=M_max){
+
+		double log_res = -(double)(n-k)*log(N+k) + qM.log_eval_prob(N+k);
+		if(log_res < std::log(tol)-log_constant){
+			break;
+		}
+		N++;
+	}
+	
+	// Formula to compute the log of all the sums in a stable way
+	return N;
+}
+
+int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						unsigned int M_max )
+{
+
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	return log_Vprior_apprx2(k,n_i,tol,gamma,qM,M_max );
+}
+
+
+int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max )
+{
+
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	// Constant term
+	int n = std::accumulate(n_i.cbegin(),n_i.cend(),0.0);
+	double log_constant = 0.5*( std::log( std::exp(2.0)*k ) - std::log( 2.0*M_PI ) );
+	log_constant -= std::inner_product( 	n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+				       					   	[](const unsigned int& nj, const double& gamma_j){
+				       					   		return (nj * std::log(gamma_j) );
+				       					   	}
+			       					  );
+
+	//Rcpp::Rcout<<"log_constant:"<<std::endl<<log_constant<<std::endl;
+	//Rcpp::Rcout<<"std::log(tol)-log_constant:"<<std::endl<<std::log(tol)-log_constant<<std::endl;
+
+	int N{1};
+	while(N<=M_max){
+
+		//Rcpp::Rcout<<"N:"<<std::endl<<N<<std::endl;
+		double log_res = -(double)(n-k)*log(N+k) + std::log(qM.eval_upper_tail(N+k+1));
+		if(log_res < std::log(tol)-log_constant){
+			break;
+		}
+		N++;
+	}
+	
+	// Formula to compute the log of all the sums in a stable way
+	return N;
+}
+
+
+int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						unsigned int M_max )
+{
+
+	if(k == 0)
+		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+	if(n_i.size() == 0)
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+	if(n_i.size() != gamma.size())
+		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+
+	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
+		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	return log_Vprior_apprx3(k,n_i,tol,gamma,qM,M_max) ;
+
+}
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 //	A priori functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -463,14 +708,24 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) 
 		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
+	// Compute the number of usefull iterations to be done
+	int Max_M =  log_Vprior_apprx3(k,n_i,1e-20,gamma,qM,M_max);
+	Max_M = M_max;
+	
+
+	//Rcpp::Rcout<<"M_max:"<<std::endl<<M_max<<std::endl;
+	//Rcpp::Rcout<<"Max_M:"<<std::endl<<Max_M<<std::endl;
+	//Rcpp::Rcout<<"qM.get_mode():"<<std::endl<<qM.get_mode()<<std::endl;
+
+
 	// Initialize vector of results
-	std::vector<double> log_vect_res(M_max+1, -std::numeric_limits<double>::infinity() );
+	std::vector<double> log_vect_res(Max_M+1, -std::numeric_limits<double>::infinity() );
 	// Initialize quantities to find the maximum
 	unsigned int idx_max{0};
 	double val_max(log_vect_res[idx_max]);
 
 	// Start the loop, let us compute all the elements
-	for(std::size_t Mstar=0; Mstar <= M_max; ++Mstar){
+	for(std::size_t Mstar=0; Mstar <= Max_M; ++Mstar){
 		//Rcpp::Rcout<<"Mstar = "<<Mstar<<std::endl;
 		// Formula implementation
 		
@@ -479,30 +734,6 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
 			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(Mstar + k) );}
 			       					   			);
-		/*
-		// Checks
-		double _a = log_raising_factorial(k, Mstar+1 );	
-		Rcpp::Rcout<<"log_raising_factorial = ("<< Mstar+1 <<")_("<< k <<") = "<<_a<<std::endl;		       					   			
-		double _b = qM.log_eval_prob(Mstar + k);			
-		Rcpp::Rcout<<"qM.log_eval_prob( "<< Mstar + k <<") = "<<_b<<std::endl;	
-
-		Rcpp::Rcout<<"Ora calcolo inner_product:"<<std::endl;	       					   		
-		Rcpp::Rcout<<"Stampo n_i: ";		
-			for(auto __v : n_i)
-				Rcpp::Rcout<<__v<<", ";
-			Rcpp::Rcout<<std::endl;	
-		Rcpp::Rcout<<"Stampo gamma: ";		
-			for(auto __v : gamma)
-				Rcpp::Rcout<<__v<<", ";
-			Rcpp::Rcout<<std::endl;	
-		Rcpp::Rcout<<"log[ (  "<<gamma[0]<<"("<< Mstar<<"+"<<k<<")  )^("<<n_i[0]<<") ] = "<<log_raising_factorial( n_i[0], gamma[0]*(Mstar + k) )<<std::endl;	
-		double _c = std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
-			       					   			  [&Mstar, &k](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(Mstar + k) );}
-			       					  );
-		Rcpp::Rcout<<"inner_product = "<<_c<<std::endl;	
-		log_vect_res[Mstar] = _a +_b -_c;		
-		*/
-		//Rcpp::Rcout<<" ---> calcolato log_vect_res[Mstar] = "<<log_vect_res[Mstar]<<std::endl;	 
 		      					   			       					   		
 		// Check if it is the new maximum
         if(log_vect_res[Mstar]>val_max){
@@ -513,14 +744,6 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 	}
 	// Formula to compute the log of all the sums in a stable way
 	return log_stable_sum(log_vect_res, TRUE, val_max, idx_max);
-	/*
-	return (val_max +
-			std::log(1 +
-				    std::accumulate(   log_vect_res.cbegin(), log_vect_res.cbegin()+idx_max, 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )  +
-				    std::accumulate(   log_vect_res.cbegin()+idx_max+1, log_vect_res.cend(), 0.0, [&val_max](double& acc, const double& x){return acc + exp(x - val_max );}   )
-		            )
-		   );
-	*/	   
 }
 
 
@@ -1707,7 +1930,7 @@ std::unique_ptr< ComponentPrior > Wrapper_ComponentPrior(const Rcpp::String& pri
 		qM_params.n_succ = prior_param["r"];
 	}
 	else{
-		throw std::runtime_error("Error in p_distinct_prior_c, not implemented prior requested by R function");
+		throw std::runtime_error("Error in Wrapper_ComponentPrior, not implemented prior requested by R function");
 	}
 
 	//Rcpp::Rcout<<"Print ComponentPrior_Parameters: qM_params.Lambda = "<<qM_params.Lambda<<"; qM_params.p = "<<qM_params.p<<"; qM_params.n_succ = "<<qM_params.n_succ<<std::endl;
@@ -2149,10 +2372,10 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 	// checks
 	if(n_j.size() != 2)
 		throw std::runtime_error("Error in D_distinct_prior_c: current implementation is only for d=2 groups ");
-	const unsigned int n = n_j[0]+n_j[1];
+	const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
 
 	// Initialize return quantities
-	Rcpp::NumericVector res(n);
+	Rcpp::NumericVector res(n, 0.0);
 	Rcpp::NumericVector logUB(n, -inf); // computed but not returned at the moment
 	// Component prior preliminary operations
 	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
@@ -2168,11 +2391,14 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 	// Cycle for each k=1,...,n
 	double log_V{0.0};
 	double log_K{0.0};
+	double cumulated{0.0};
 	Progress progress_bar(n, TRUE); // Initialize progress bar
-	for(unsigned int k=1; k<=Kexact; ++k){
+	for(unsigned int k=1; k<=n; ++k){
 		log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
 		log_K = compute_Kprior_unnormalized(k, n_j, gamma_j);
 		res[k-1] = std::exp(log_V + log_K);
+		cumulated += res[k-1];
+		//Rcpp::Rcout<<"P(K <= "<<k<<") = "<<cumulated<<std::endl;
 		//Check for User Interruption
 		try{
 		    Rcpp::checkUserInterrupt();
@@ -2183,44 +2409,79 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 		}
 		progress_bar.increment(); //update progress bar
 		//Rcpp::Rcout<<"k = "<<k<<std::endl;
+
+		if(1.0 - cumulated < 1e-10 )
+			break;
 	}
 
-	for(unsigned int k=Kexact+1; k<=n; ++k){
-		// Compute V
-		log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
+	//for(unsigned int k=Kexact+1; k<=n; ++k){
+		//// Compute V
+		//log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
+//
+		//// Compute Upper Bound
+		//logUB[k-1] = log_V -gsl_sf_lnfact(k) + std::log(gamma_j[0]) + std::log(gamma_j[1]) + 
+					 //2.0*std::log((double)k) +
+					 //( (double)n_j[0]-1.0 )*std::log(gamma_j[0]*(double)k + n_j[0]) + 
+					 //( (double)n_j[1]-1.0 )*std::log(gamma_j[1]*(double)k + n_j[1]); 
+//
+		//// Check if upper bound if 
+		//if(logUB[k-1] > (-16.0)*std::log(10) ){
+			//log_K = compute_Kprior_unnormalized(k, n_j, gamma_j);
+			//res[k-1] = std::exp(log_V + log_K);
+		//}
+		//else{
+			//res = 0.0;
+		//}
+		////Check for User Interruption
+		//try{
+		    //Rcpp::checkUserInterrupt();
+		//}
+		//catch(Rcpp::internal::InterruptedException e){ 
+		    ////Print error and return
+		    //throw std::runtime_error("Execution stopped by the user");
+		//}
+		//progress_bar.increment(); //update progress bar
+		////Rcpp::Rcout<<"speedup: k = "<<k<<std::endl;
+	//}
 
-		// Compute Upper Bound
-		logUB[k-1] = log_V -gsl_sf_lnfact(k) + std::log(gamma_j[0]) + std::log(gamma_j[1]) + 
-					 2.0*std::log((double)k) +
-					 ( (double)n_j[0]-1.0 )*std::log(gamma_j[0]*(double)k + n_j[0]) + 
-					 ( (double)n_j[1]-1.0 )*std::log(gamma_j[1]*(double)k + n_j[1]); 
 
-		// Check if upper bound if 
-		if(logUB[k-1] > (-16.0)*std::log(10) ){
-			log_K = compute_Kprior_unnormalized(k, n_j, gamma_j);
-			res[k-1] = std::exp(log_V + log_K);
-		}
-		else{
-			res = 0.0;
-		}
-		//Check for User Interruption
-		try{
-		    Rcpp::checkUserInterrupt();
-		}
-		catch(Rcpp::internal::InterruptedException e){ 
-		    //Print error and return
-		    throw std::runtime_error("Execution stopped by the user");
-		}
-		progress_bar.increment(); //update progress bar
-		//Rcpp::Rcout<<"speedup: k = "<<k<<std::endl;
-	}
 	return (res);
 }
+
+
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// NON FUNZIONA, non usare
+Rcpp::List Test_Riemann(double s, int n)
+{
+	double log_z = std::log(gsl_sf_zeta(s));
+	std::vector<double> uno_N(n);
+	std::iota(uno_N.begin(),uno_N.end(),1);
+	
+	Rcpp::Rcout<<"Stampo uno_N: ";		
+	for(auto __v : uno_N)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+
+	// Per qualche motivo, non funziona!!
+	std::for_each(uno_N.begin(),uno_N.end(), [&s](double h){
+		Rcpp::Rcout<<"1.0/std::pow( (double)h,s):"<<std::endl<<1.0/std::pow( (double)h,s)<<std::endl;
+		return (1.0/std::pow( (double)h,s) ) ; } );
+	
+	Rcpp::Rcout<<"Stampo uno_N: ";		
+	for(auto __v : uno_N)
+		Rcpp::Rcout<<__v<<", ";
+	Rcpp::Rcout<<std::endl;
+	double log_resto = log_stable_sum(uno_N,TRUE);	
+	double log_res = log_z + std::log(1-std::exp(log_resto-log_z) );
+	return Rcpp::List::create( Rcpp::Named("log_z") = log_z, 
+							   Rcpp::Named("log_resto") = log_resto,
+							   Rcpp::Named("log_res") = log_res
+							   ); 
+}
 
 void Test_Prior(){
 	Rcpp::String form = "Poisson";

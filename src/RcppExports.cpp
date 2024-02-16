@@ -84,6 +84,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_zeta_Riemann
+double log_zeta_Riemann(double s);
+RcppExport SEXP _HSSM_log_zeta_Riemann(SEXP sSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_zeta_Riemann(s));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_logC
 Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location);
 RcppExport SEXP _HSSM_compute_logC(SEXP nSEXP, SEXP scaleSEXP, SEXP locationSEXP) {
@@ -94,6 +105,73 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< const double& >::type location(locationSEXP);
     rcpp_result_gen = Rcpp::wrap(compute_logC(n, scale, location));
+    return rcpp_result_gen;
+END_RCPP
+}
+// log_Vprior_long
+std::vector<double> log_Vprior_long(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _HSSM_log_Vprior_long(SEXP kSEXP, SEXP n_iSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_i(n_iSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_Vprior_long(k, n_i, gamma, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// log_Vprior_apprx1
+int log_Vprior_apprx1(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol, const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _HSSM_log_Vprior_apprx1(SEXP kSEXP, SEXP n_iSEXP, SEXP tolSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_i(n_iSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_Vprior_apprx1(k, n_i, tol, gamma, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// log_Vprior_apprx2
+int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol, const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _HSSM_log_Vprior_apprx2(SEXP kSEXP, SEXP n_iSEXP, SEXP tolSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_i(n_iSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_Vprior_apprx2(k, n_i, tol, gamma, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// log_Vprior_apprx3
+int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol, const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _HSSM_log_Vprior_apprx3(SEXP kSEXP, SEXP n_iSEXP, SEXP tolSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_i(n_iSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_Vprior_apprx3(k, n_i, tol, gamma, prior, prior_param, M_max));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -285,7 +363,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_my_log_falling_factorial", (DL_FUNC) &_HSSM_my_log_falling_factorial, 2},
     {"_HSSM_compute_Pochhammer", (DL_FUNC) &_HSSM_compute_Pochhammer, 2},
     {"_HSSM_compute_log_Pochhammer", (DL_FUNC) &_HSSM_compute_log_Pochhammer, 2},
+    {"_HSSM_log_zeta_Riemann", (DL_FUNC) &_HSSM_log_zeta_Riemann, 1},
     {"_HSSM_compute_logC", (DL_FUNC) &_HSSM_compute_logC, 3},
+    {"_HSSM_log_Vprior_long", (DL_FUNC) &_HSSM_log_Vprior_long, 6},
+    {"_HSSM_log_Vprior_apprx1", (DL_FUNC) &_HSSM_log_Vprior_apprx1, 7},
+    {"_HSSM_log_Vprior_apprx2", (DL_FUNC) &_HSSM_log_Vprior_apprx2, 7},
+    {"_HSSM_log_Vprior_apprx3", (DL_FUNC) &_HSSM_log_Vprior_apprx3, 7},
     {"_HSSM_p_distinct_prior_c", (DL_FUNC) &_HSSM_p_distinct_prior_c, 6},
     {"_HSSM_p_shared_prior_c", (DL_FUNC) &_HSSM_p_shared_prior_c, 6},
     {"_HSSM_p_distinct_posterior_c", (DL_FUNC) &_HSSM_p_distinct_posterior_c, 8},

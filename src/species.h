@@ -122,6 +122,11 @@ double compute_Pochhammer(const unsigned int& x, const double& a);
 double compute_log_Pochhammer(const unsigned int& x, const double& a);
 
 
+//' Zeta Riemann function in log scale
+//'
+//' @export
+// [[Rcpp::export]]
+double log_zeta_Riemann(double s);
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	C numbers
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -177,12 +182,65 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Approximations for V
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//' All terms of V
+//'
+//' This function returns the log of all terms in V, from m=0 up to M_max
+//' @export
+// [[Rcpp::export]]
+std::vector<double> log_Vprior_long(const unsigned int& k, const std::vector<unsigned int>& n_i, 
+									const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									unsigned int M_max );
+
+// log_Vprior_apprx2 pesca valori vicino alla moda di q_M ma esplode quando gamma
+// diminuisce molto o n_j aumenta molto. Per questi casi difficili, log_Vprior_apprx3 funziona meglio
+//
+// log_Vprior_apprx1 è totalemente inutilizzabile
+
+
+//' V approximation - Zeta Riemann
+//'
+//' Non usare questa funzione. Non ci sono funzioni che implementino il log della zeta-Riemann. Quindi ho problemi numerici e non va
+//' @export
+// [[Rcpp::export]]
+int log_Vprior_apprx1(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+									  const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									  unsigned int M_max );
+
+//' V approximation - Under threshold
+//'
+//' This approximation has no theoretical guarantees
+//' @export
+// [[Rcpp::export]]
+int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						unsigned int M_max );
+
+// Overloaded function
+int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max );
+
+
+//' V approximation - Compute Upper tail
+//'
+//' Non posso calcolare direttamente il log di P(M>N+K). Usala solo se gamma è molto piccolo o n_j è molto grande.
+//' @export
+// [[Rcpp::export]]
+int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_i, const double& tol,
+						const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						unsigned int M_max );
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 //	A priori functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 // Da Testare (ma tanto è inutile, calcolo sempre solo il log)
-double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
+double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
+						const ComponentPrior& qM, unsigned int M_max = 100 );
 
 // Works for d>2
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
