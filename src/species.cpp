@@ -2448,6 +2448,172 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 	return (res);
 }
 
+Rcpp::List Distinct_Prior_MCMC( unsigned int Niter,
+				                 const std::vector<unsigned int>& n_j,
+				                 const std::vector<double>& gamma_j,
+				                 const Rcpp::String& prior, const Rcpp::List& prior_param,
+				                 unsigned int M_max,
+				                 unsigned int seed
+				              )
+{
+    // Standard definitions
+    double inf = std::numeric_limits<double>::infinity();
+    const unsigned int d{n_j.size()};
+    unsigned int n = std::accumulate(n_j.cbegin(), n_j.cend(), 0);
+    auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+    ComponentPrior& qM(*qM_ptr);
+
+    // Set empty initial partition
+    unsigned int K = 1;
+    MatUnsCol N{MatUnsCol::Constant(d,K,0)};
+    std::vector< std::vector<unsigned int> > z_ji(d);
+    for (int j = 0; j < d; j++){
+        std::vector<unsigned int> zeros(n_j[j],0);
+        z_ji[j] = zeros;
+        N(j,0) = n_j[j];
+    }
+
+    if(gamma_j.size() != d)
+        throw std::runtime_error("Error in Distinct_Prior_MCMC: length of gamma_j must be equal to d, but it is not compatible with length of n_j");
+
+    VecUnsCol N_k = N.colwise().sum(); // vector of length K, N_k[m] is the number of data assigned to cluster m
+
+    // Define return objects
+    std::vector<double> logV_vec(n+1,-inf); // Vector of logV, i.e., logV_vec[k] = log( V(n,k) )
+    std::vector<unsigned int> K_MCMC(Niter+1,0); // Vector of MCMC values for K
+    K_MCMC[0] = K;
+
+    // Declare auxiliary quantities
+    double log_probs_max;
+    sample::sample_index sample_index;
+    sample::GSL_RNG engine(seed); // initialize random engine with default random seed
+    unsigned int new_z_ji;
+    double logVnum{-inf}; 
+    double logVden{-inf}; 
+
+    Progress progress_bar(Niter, TRUE); // Initialize progress bar
+    for(std::size_t it = 0; it < Niter; it++){
+        //Rcpp::Rcout<<"###################################"<<std::endl;
+        // Chinese Restaurant Franchise process allocation
+        for(unsigned int j=0; j<d; j++)
+        {
+            for(unsigned int i=0; i<n_j[j]; i++)
+            {
+
+            			//Rcpp::Rcout<<"("<<j<<", "<<i<<")  ||  K = "<<K<<std::endl;
+                // Shortcut to get cluster membership of observation (j,i)
+                unsigned int C_ji = z_ji[j][i];  
+                  
+                // remove obs ji from its cluster. In this step, both the local and the global counts must be updated as well as the sums in that cluster
+                N_k(C_ji)--; // decrease the global counts
+                N(j,C_ji)--; // decrease the local counts
+
+	                //Rcpp::Rcout<<"N_k = "<<N_k<<std::endl; 
+	                //Rcpp::Rcout<<"N_k(C_ji) = "<<N_k(C_ji)<<std::endl; 
+
+                // if the cluster becomes empty, then it must be removed. 
+                // This is achived by replacing the now empty cluster with the last one.
+                if(N_k(C_ji) == 0){
+                			//Rcpp::Rcout<<"------ Rimuovo un cluster -------"<<std::endl;
+                			//throw std::runtime_error("FERMO IO - Rimuovo ");
+                    // last cluster to replace the now empty cluster. 
+                    N_k(C_ji) = N_k(K-1);        // update the global counts
+                    N_k.resize(K-1);             // eliminate the last cluster, now empty
+                    N.col(C_ji) = N.col(K-1);    // update the local counts
+                    N.conservativeResize(d,K-1); // eliminate the last cluster, now empty
+                    // change all labels according to new labeling. Data (there is only one and it is in position ji) with label C_ji is ruled out by setting its label equal to K-1
+                    // while current data with label K-1 get label C_ji
+                    
+                    for(unsigned int jj=0; jj<d; jj++){
+                        for(unsigned int ii=0; ii<n_j[jj]; ii++){
+                            if(z_ji[jj][ii] == K-1)
+                                z_ji[jj][ii] = C_ji; // switch label for data currently in cluster K-1
+                        }
+                    }
+                    z_ji[j][i] = K-1;
+
+                    K--; // decrese the current number of clusters 
+                }
+
+
+                VecRow log_probs_vec = VecRow::Constant(K+1, 0.0); // define vector of weights, currently in log-scale. lenght must be K+1
+
+                // loop over current clusters 
+                if(K==0)
+                    throw std::runtime_error("Error in Distinct_Prior_MCMC: K is 0, this should be impossible");
+
+                for(std::size_t l = 0; l < K; l++){
+                    log_probs_vec[l] =  std::log( (double)N(j,l) + gamma_j[j] ); // set prior term
+                    		//Rcpp::Rcout<<"log_probs_vec["<<l<<"] = "<<log_probs_vec[l]<<std::endl;
+                }
+                
+                // we are done looping over the already occupied clusters. Next, calculate the log probability of a new table.
+                if(logV_vec[K+1] == -inf)
+                    logV_vec[K+1] = compute_log_Vprior(K+1, n_j, gamma_j, qM, M_max );
+                if(logV_vec[K] == -inf)
+                    logV_vec[K] = compute_log_Vprior(K, n_j, gamma_j, qM, M_max );
+
+                logVnum = logV_vec[K+1];
+                logVden = logV_vec[K];
+
+                		//Rcpp::Rcout<<"logVnum = "<<logVnum<<std::endl;
+                		//Rcpp::Rcout<<"logVden = "<<logVden<<std::endl;
+                log_probs_vec[K] =  std::log(gamma_j[j]) + logVnum - logVden;   // prior term            
+						//Rcpp::Rcout<<"log_probs_vec["<<K<<"] = "<<log_probs_vec[K]<<std::endl;
+
+                // stable calculation of non-normalized weights in non-log scale
+                log_probs_max = log_probs_vec.maxCoeff(); // get max value
+
+                for(std::size_t m = 0; m < log_probs_vec.size(); m++){
+                    log_probs_vec(m) = std::exp(log_probs_vec(m) - log_probs_max);
+                     //Rcpp::Rcout<<" p:"<<probs_vec(m)<<" ";
+                    if(std::isnan(log_probs_vec(m)))
+                        throw std::runtime_error("Error in Distinct_Prior_MCMC, get a nan in probs_vec ");
+                }
+
+                		//Rcpp::Rcout<<"Probs: "<<log_probs_vec/log_probs_vec.sum()<<std::endl;
+                // Draw a sample of which cluster customer ji should belong to 
+                new_z_ji = sample_index(engine, log_probs_vec); //values in log_probs_vec are no longer in log-scale here
+                		//Rcpp::Rcout<<"new_z_ji = "<<new_z_ji<<std::endl; 
+                // set a new cluster, if necessary
+                if( new_z_ji == K){
+                			//Rcpp::Rcout<<"+++++++ Aggiungo un cluster +++++++"<<std::endl;
+                			//throw std::runtime_error("FERMO IO - Aggiungo ");
+                    N_k.resize(K+1);                         // allocate space in global counts for the new cluster
+                    N_k(K) = 0;                              // values are assigned later
+                    N.conservativeResize(d,K+1);             // allocate space in local counts for the new cluster
+                    N.col(K) = VecUnsCol::Constant(d,0);     // values are assigned later. Note that here we are setting empty tables in all the other restaurants
+                    K++;
+                }
+
+                //Assign cluster membership and update counts
+                z_ji[j][i] = new_z_ji;   // set new label
+                N_k(new_z_ji)++;         // update global counts
+                N(j,new_z_ji)++;         // update local counts
+            }
+            //throw std::runtime_error("FERMO IO - in ");
+        }
+
+        progress_bar.increment(); //update progress bar
+
+        if(K==0)
+            throw std::runtime_error("Error in Distinct_Prior_MCMC: K is 0, this should be impossible");
+
+        // Save MCMC 
+        K_MCMC[it+1] = K;
+
+        //Check for User Interruption
+        try{
+            Rcpp::checkUserInterrupt();
+        }
+        catch(Rcpp::internal::InterruptedException e){ 
+            //Print error and return
+            throw std::runtime_error("Execution stopped by the user");
+        }
+    }
+
+    return Rcpp::List::create( Rcpp::Named("K_MCMC") = K_MCMC, Rcpp::Named("logV_vec") = logV_vec);
+}
 
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------

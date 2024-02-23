@@ -161,6 +161,12 @@ D_distinct_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kexact) 
     .Call(`_HSSM_D_distinct_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kexact)
 }
 
+#' 
+#' @export
+Distinct_Prior_MCMC <- function(Niter, n_j, gamma_j, prior, prior_param, M_max = 1000L, seed = 0L) {
+    .Call(`_HSSM_Distinct_Prior_MCMC`, Niter, n_j, gamma_j, prior, prior_param, M_max, seed)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

@@ -384,6 +384,17 @@ Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const st
 Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
 					              		const Rcpp::List& prior_param, unsigned int M_max, const unsigned int& Kexact );
 
+// Compute MCMC for Prior
+//' 
+//' @export
+// [[Rcpp::export]] 
+Rcpp::List  Distinct_Prior_MCMC( unsigned int Niter,
+				                 const std::vector<unsigned int>& n_j,
+				                 const std::vector<double>& gamma_j,
+				                 const Rcpp::String& prior, const Rcpp::List& prior_param,
+				                 unsigned int M_max = 1000,
+				                 unsigned int seed = 0
+				               );
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------
