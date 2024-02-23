@@ -2515,10 +2515,9 @@ Rcpp::List Distinct_Prior_MCMC( unsigned int Niter,
                 // This is achived by replacing the now empty cluster with the last one.
                 if(N_k(C_ji) == 0){
                 			//Rcpp::Rcout<<"------ Rimuovo un cluster -------"<<std::endl;
-                			//throw std::runtime_error("FERMO IO - Rimuovo ");
                     // last cluster to replace the now empty cluster. 
                     N_k(C_ji) = N_k(K-1);        // update the global counts
-                    N_k.resize(K-1);             // eliminate the last cluster, now empty
+                    N_k.conservativeResize(K-1);             // eliminate the last cluster, now empty
                     N.col(C_ji) = N.col(K-1);    // update the local counts
                     N.conservativeResize(d,K-1); // eliminate the last cluster, now empty
                     // change all labels according to new labeling. Data (there is only one and it is in position ji) with label C_ji is ruled out by setting its label equal to K-1
@@ -2579,7 +2578,7 @@ Rcpp::List Distinct_Prior_MCMC( unsigned int Niter,
                 if( new_z_ji == K){
                 			//Rcpp::Rcout<<"+++++++ Aggiungo un cluster +++++++"<<std::endl;
                 			//throw std::runtime_error("FERMO IO - Aggiungo ");
-                    N_k.resize(K+1);                         // allocate space in global counts for the new cluster
+                    N_k.conservativeResize(K+1);             // allocate space in global counts for the new cluster
                     N_k(K) = 0;                              // values are assigned later
                     N.conservativeResize(d,K+1);             // allocate space in local counts for the new cluster
                     N.col(K) = VecUnsCol::Constant(d,0);     // values are assigned later. Note that here we are setting empty tables in all the other restaurants
@@ -2590,8 +2589,18 @@ Rcpp::List Distinct_Prior_MCMC( unsigned int Niter,
                 z_ji[j][i] = new_z_ji;   // set new label
                 N_k(new_z_ji)++;         // update global counts
                 N(j,new_z_ji)++;         // update local counts
+
+                if(N.sum() != n){
+                	Rcpp::Rcout<<"N.sum():"<<std::endl<<N.sum()<<std::endl;
+                	throw std::runtime_error("Error in Distinct_Prior_MCMC: N_k is not summing to n ");
+                }
+                if(N_k.sum() != n){
+                	Rcpp::Rcout<<"N_k.sum():"<<std::endl<<N_k.sum()<<std::endl;
+                	throw std::runtime_error("Error in Distinct_Prior_MCMC: N_k is not summing to n ");
+                }
             }
-            //throw std::runtime_error("FERMO IO - in ");
+
+
         }
 
         progress_bar.increment(); //update progress bar
