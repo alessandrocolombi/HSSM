@@ -500,3 +500,85 @@ D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
   # Compute non trivial cases
   return (  D_distinct_prior_c(n_j,gamma,prior,prior_params,Max_iter,Kexact)  )
 }
+
+
+#' arrange_partition
+#'
+#' This function takes as input a partition and fix it according to the notation used to define partitions in the sampler.
+#' @param partition [vector] the input partition.
+#' @return [vector] containing the partition following the requirement of the sampler.
+#' @export
+arrange_partition = function(partition){
+
+  num = sort(unique(partition)) #get passed indices
+  idx = seq(0, length(num)-1, by=1) #create sequence with correct indices
+
+  for(h in 1:length(num)){
+    if(num[h]!=idx[h])
+      partition[partition == num[h]] = idx[h]
+  }
+
+  # A possible way to do this operation using apply is
+  #apply(as.array(partition), MARGIN = 1, FUN = function(x){
+  #h = which(num == x)
+  #if(num[h]!=idx[h]) return (idx[h])
+  #else return (x)
+  #})
+  # but it looks more expensive to me
+  return (partition)
+}
+
+
+#' Distinct_Prior_MCMC
+#'
+#' @export
+Distinct_Prior_MCMC = function( Niter, n_j, gamma_j, part_init = NULL,
+                                prior, prior_param, M_max = 1000, seed = 0)
+{
+  d = length(n_j)
+  n = sum(n_j)
+
+  if(is.null(part_init))
+    part_init = rep(0,n)
+  if(Niter <= 0)
+    stop("Niter must be positive")
+  if(length(n_j)!=length(gamma_j))
+    stop("length of n_j differs from length gamma_j")
+  if(length(part_init) != n)
+    stop("Number of points in part_init is not equal to n")
+
+  part_init = arrange_partition(part_init)
+  idx_temp  = cumsum(c(0,n_j))
+  idx_start = idx_temp[1:d]+1
+  idx_end   = idx_temp[2:(d+1)]
+
+  # handle initial partition: compute N_k and N_jk
+  global_clustering = table(part_init)
+  K0 = length(global_clustering)
+  cluster_labels = names(global_clustering)
+  initial_values = data.frame( matrix(0,nrow = d, ncol = K0) )
+  names(initial_values) = cluster_labels
+
+  for(j in 1:d){
+    temp = table(part_init[idx_start[j]:idx_end[j]])
+    insert = unlist(lapply(as.list(cluster_labels), FUN = function(el){el %in% names(temp)}))
+    initial_values[j,insert] = c(temp)
+  }
+
+  N_k = c(apply( initial_values, 2, sum))
+
+  return( Distinct_Prior_MCMC_c( as.matrix(initial_values), N_k, part_init, K0,
+                                 Niter, n_j, gamma_j,
+                                 prior, prior_param,
+                                 M_max, seed )
+        )
+
+}
+
+
+
+
+
+
+
+
