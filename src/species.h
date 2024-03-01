@@ -381,8 +381,11 @@ Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const st
 // Compute the whole distribution for the prior number of distinct components
 //' 
 // [[Rcpp::export]] 
-Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
-					              		const Rcpp::List& prior_param, unsigned int M_max, const unsigned int& Kexact );
+Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+										const Rcpp::String& prior, const Rcpp::List& prior_param, 
+										unsigned int M_max, 
+										const int& Kstart,
+										std::vector<double>& logV_vec   );
 
 // Compute MCMC for Prior
 //' 

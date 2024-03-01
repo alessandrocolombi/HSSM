@@ -160,8 +160,8 @@ LowerBounds_c <- function(n_j, gamma_j, prior, prior_param, M_max) {
 }
 
 #' 
-D_distinct_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kexact) {
-    .Call(`_HSSM_D_distinct_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kexact)
+D_distinct_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec) {
+    .Call(`_HSSM_D_distinct_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec)
 }
 
 #' 

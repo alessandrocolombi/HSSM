@@ -461,9 +461,14 @@ LowerBounds = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
 
 #' Compute prior distribution
 #' @export
-D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, Kexact = 100){
+D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, Kstart = 1, logV_vec = NULL){
   l = list(...)
   L = length(l)
+  n = sum(n_j)
+
+  if(is.null(logV_vec)){
+    logV_vec = rep(-Inf, n+1)
+  }
 
   #checks
   if(length(n_j)!=length(gamma))
@@ -472,8 +477,10 @@ D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
     stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
   if(Max_iter<=0)
     stop("The number of iterations must be strictly positive")
-  if(Kexact<=1)
-    stop("The number of atoms whose probability is computed exactly must be strictly larger than 1");
+  if(Kstart<1)
+    stop("The starting value for K must be >= 1")
+  if(length(logV_vec)!=(n+1))
+    stop("Length of logV_vec must be equal to n+1. logV_vec=NULL is a valid option.")
 
   # read prior parameters
   prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
@@ -498,7 +505,7 @@ D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
     stop("prior can only be equal to Poisson or NegativeBinomial")
 
   # Compute non trivial cases
-  return (  D_distinct_prior_c(n_j,gamma,prior,prior_params,Max_iter,Kexact)  )
+  return (  D_distinct_prior_c(n_j,gamma,prior,prior_params,Max_iter,Kstart,logV_vec)  )
 }
 
 

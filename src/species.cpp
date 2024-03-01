@@ -666,9 +666,6 @@ int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_
 
 }
 
-
-
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	A priori functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2365,8 +2362,11 @@ Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const st
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Compute the whole distribution for the prior number of distinct components
-Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, 
-					              		const Rcpp::List& prior_param, unsigned int M_max, const unsigned int& Kexact   )
+Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+										const Rcpp::String& prior, const Rcpp::List& prior_param, 
+										unsigned int M_max, 
+										const int& Kstart,
+										std::vector<double>& logV_vec   )
 {
 	double inf = std::numeric_limits<double>::infinity();
 	// checks
@@ -2375,8 +2375,7 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 	const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
 
 	// Initialize return quantities
-	Rcpp::NumericVector res(n, 0.0);
-	Rcpp::NumericVector logUB(n, -inf); // computed but not returned at the moment
+	Rcpp::NumericVector res(n+1, 0.0);
 	// Component prior preliminary operations
 	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
@@ -2388,16 +2387,36 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 	Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 	Rcpp::Rcout<<" done! "<<std::endl;
 
-	// Cycle for each k=1,...,n
+	// Define grid search for k
+	const unsigned int max_diff{std::max(Kstart-1,(int)n-Kstart)};
+	std::vector<unsigned int> Ksearch;
+	Ksearch.reserve(n);
+	Ksearch.push_back( (unsigned int)Kstart );
+	for(int i = 1; i <= max_diff; i++){
+		if( (Kstart-i) > 0)
+			Ksearch.push_back( (unsigned int)(Kstart-i) );
+		if( (Kstart+i) <= n)
+			Ksearch.push_back( (unsigned int)(Kstart+i) );
+	}
+
+	// Cycle for each k in Ksearch
 	double log_V{0.0};
 	double log_K{0.0};
 	double cumulated{0.0};
 	Progress progress_bar(n, TRUE); // Initialize progress bar
-	for(unsigned int k=1; k<=n; ++k){
-		log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
-		log_K = compute_Kprior_unnormalized(k, n_j, gamma_j);
-		res[k-1] = std::exp(log_V + log_K);
-		cumulated += res[k-1];
+	for(unsigned int it=0; it<Ksearch.size(); ++it){
+		unsigned int k = Ksearch[it];
+
+		// compute V number if never computed before
+		if(logV_vec[k] == -inf)
+		    logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+
+		// get V number
+		log_V = logV_vec[k];
+
+		log_K = compute_Kprior_unnormalized(k, n_j, gamma_j, absC1, absC2);
+		res[k] = std::exp(log_V + log_K);
+		cumulated += res[k];
 		//Rcpp::Rcout<<"P(K <= "<<k<<") = "<<cumulated<<std::endl;
 		//Check for User Interruption
 		try{
@@ -2410,40 +2429,9 @@ Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, con
 		progress_bar.increment(); //update progress bar
 		//Rcpp::Rcout<<"k = "<<k<<std::endl;
 
-		if(1.0 - cumulated < 1e-10 )
+		if( std::log(1.0 - cumulated) < std::log(1e-10) )
 			break;
 	}
-
-	//for(unsigned int k=Kexact+1; k<=n; ++k){
-		//// Compute V
-		//log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max);
-//
-		//// Compute Upper Bound
-		//logUB[k-1] = log_V -gsl_sf_lnfact(k) + std::log(gamma_j[0]) + std::log(gamma_j[1]) + 
-					 //2.0*std::log((double)k) +
-					 //( (double)n_j[0]-1.0 )*std::log(gamma_j[0]*(double)k + n_j[0]) + 
-					 //( (double)n_j[1]-1.0 )*std::log(gamma_j[1]*(double)k + n_j[1]); 
-//
-		//// Check if upper bound if 
-		//if(logUB[k-1] > (-16.0)*std::log(10) ){
-			//log_K = compute_Kprior_unnormalized(k, n_j, gamma_j);
-			//res[k-1] = std::exp(log_V + log_K);
-		//}
-		//else{
-			//res = 0.0;
-		//}
-		////Check for User Interruption
-		//try{
-		    //Rcpp::checkUserInterrupt();
-		//}
-		//catch(Rcpp::internal::InterruptedException e){ 
-		    ////Print error and return
-		    //throw std::runtime_error("Execution stopped by the user");
-		//}
-		//progress_bar.increment(); //update progress bar
-		////Rcpp::Rcout<<"speedup: k = "<<k<<std::endl;
-	//}
-
 
 	return (res);
 }

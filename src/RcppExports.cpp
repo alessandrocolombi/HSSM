@@ -322,8 +322,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // D_distinct_prior_c
-Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, const unsigned int& Kexact);
-RcppExport SEXP _HSSM_D_distinct_prior_c(SEXP n_jSEXP, SEXP gamma_jSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP KexactSEXP) {
+Rcpp::NumericVector D_distinct_prior_c(const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, const int& Kstart, std::vector<double>& logV_vec);
+RcppExport SEXP _HSSM_D_distinct_prior_c(SEXP n_jSEXP, SEXP gamma_jSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP KstartSEXP, SEXP logV_vecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -332,8 +332,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type Kexact(KexactSEXP);
-    rcpp_result_gen = Rcpp::wrap(D_distinct_prior_c(n_j, gamma_j, prior, prior_param, M_max, Kexact));
+    Rcpp::traits::input_parameter< const int& >::type Kstart(KstartSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type logV_vec(logV_vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(D_distinct_prior_c(n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -399,7 +400,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_Sums_logC", (DL_FUNC) &_HSSM_Sums_logC, 2},
     {"_HSSM_UpperBounds_c", (DL_FUNC) &_HSSM_UpperBounds_c, 5},
     {"_HSSM_LowerBounds_c", (DL_FUNC) &_HSSM_LowerBounds_c, 5},
-    {"_HSSM_D_distinct_prior_c", (DL_FUNC) &_HSSM_D_distinct_prior_c, 6},
+    {"_HSSM_D_distinct_prior_c", (DL_FUNC) &_HSSM_D_distinct_prior_c, 7},
     {"_HSSM_Distinct_Prior_MCMC_c", (DL_FUNC) &_HSSM_Distinct_Prior_MCMC_c, 11},
     {"_HSSM_Test_Prior", (DL_FUNC) &_HSSM_Test_Prior, 0},
     {"_HSSM_Test_prod_sum", (DL_FUNC) &_HSSM_Test_prod_sum, 0},
