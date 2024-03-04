@@ -8,7 +8,7 @@ Distinct_Prior_MCMC(
   Niter,
   n_j,
   gamma_j,
-  part_init = rep(0, sum(n_j)),
+  part_init = NULL,
   prior,
   prior_param,
   M_max = 1000,

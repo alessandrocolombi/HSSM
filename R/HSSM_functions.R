@@ -24,7 +24,7 @@ p_distinct_prior = function(k,n_j, gamma, prior = "Poisson", ..., Max_iter = 100
   prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
   if(prior == "Poisson"){
     if(L!=1)
-      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter is expected ")
     if(! names(l)=="lambda")
       stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
 
@@ -32,9 +32,9 @@ p_distinct_prior = function(k,n_j, gamma, prior = "Poisson", ..., Max_iter = 100
   }
   else if(prior == "NegativeBinomial"){
     if(L!=2)
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters are expected ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -90,8 +90,8 @@ p_shared_prior = function(s,n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -152,8 +152,8 @@ p_distinct_posterior = function(r, k, m_j, n_j, gamma, prior = "Poisson", ..., M
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -219,8 +219,8 @@ p_shared_posterior = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., Max
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -285,8 +285,8 @@ Expected_prior = function(n_j, gamma, type, prior = "Poisson", ..., Max_iter = 1
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -346,8 +346,8 @@ Expected_posterior = function(k, m_j, n_j, gamma, type, prior = "Poisson", ..., 
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -405,8 +405,8 @@ UpperBounds = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -446,8 +446,8 @@ LowerBounds = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100){
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -495,8 +495,8 @@ D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
   else if(prior == "NegativeBinomial"){
     if(L!=2)
       stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
-    if( !any(! names(l) %in% names(prior_params)) )  #check names
-      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly one parameters named r and p are expected. The names must be passed explicitely ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
 
     prior_params$r = l$r
     prior_params$p = l$p
@@ -585,7 +585,19 @@ Distinct_Prior_MCMC = function( Niter, n_j, gamma_j, part_init = NULL,
 
 
 
+#' Negative Binomial parametrization
+#'
+#' @export
+NegBin_parametrization = function(mean,variance)
+{
+  if(variance <= 0)
+    stop("Error in NegBin_parametrization: the variance must be strictly positive")
 
+  res = list("r"=-1,"p"=-1)
+  res$p = (mean)/(variance)
+  res$r = (mean*mean)/(variance - mean)
+  return(res)
+}
 
 
 

@@ -10,7 +10,8 @@ D_distinct_prior(
   prior = "Poisson",
   ...,
   Max_iter = 100,
-  Kexact = 100
+  Kstart = 1,
+  logV_vec = NULL
 )
 }
 \description{

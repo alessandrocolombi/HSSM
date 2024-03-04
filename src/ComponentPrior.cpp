@@ -81,7 +81,8 @@ double NegativeBinomial1::log_eval_prob(unsigned int const & k) const{
 		
 		if( p==0 || p == 1)
 			throw std::runtime_error("Error in NegativeBinomial1::log_eval_prob. It is not possible to compute the log probability if p is equal to 1 or 0");
-
+				//Rcpp::Rcout<<"d_NB(k = "<<k<<"| p="<<p<<", n="<<n<<") = ";
+				//Rcpp::Rcout<<std::exp(gsl_sf_lnchoose(k+n-2, k-1) + (double)n*std::log(p) + (double)(k-1)*std::log(1-p))<<std::endl;
 		return ( gsl_sf_lnchoose(k+n-2, k-1) + (double)n*std::log(p) + (double)(k-1)*std::log(1-p) );
 		
 	}

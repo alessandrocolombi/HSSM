@@ -2429,7 +2429,7 @@ Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, co
 		progress_bar.increment(); //update progress bar
 		//Rcpp::Rcout<<"k = "<<k<<std::endl;
 
-		if( std::log(1.0 - cumulated) < std::log(1e-10) )
+		if( 1.0 - cumulated < 1e-10 )
 			break;
 	}
 

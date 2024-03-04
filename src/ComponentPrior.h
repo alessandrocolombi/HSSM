@@ -43,7 +43,8 @@ private:
 
 // There is not an unique definition of the negative binomial distribution. 
 // Here, we follow the one of the gls library,
-// "This function returns a random integer from the negative binomial distribution, the number of failures occurring before n successes in independent trials with probability p of success."
+// "This function returns a random integer from the negative binomial distribution, 
+// the number of failures occurring before n successes in independent trials with probability p of success."
 // and it is shifted by 1, the probability of k=0 is 0 and the probability of k is equal to the one computed using the gsl function with k = k-1. 
 class NegativeBinomial1 : public ComponentPrior{ 
 public:
