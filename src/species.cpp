@@ -2796,6 +2796,76 @@ Rcpp::List Distinct_Prior_MCMC_c( Eigen::Matrix<unsigned int, Eigen::Dynamic, Ei
 }
 
 
+//Rcpp::NumericMatrix
+//D_joint_prior_c( const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, 
+				 //const Rcpp::String& prior, const Rcpp::List& prior_param, 
+				 //const int& Kstart, std::vector<double>& logV_vec, unsigned int M_max  )
+//{
+	//// Component prior preliminary operations
+	//auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	//ComponentPrior& qM(*qM_ptr);
+	////Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	//const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
+	//// Compute all C numbers required
+	//Rcpp::Rcout<<"Compute C numbers ... ";
+	//Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+	//Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+	//Rcpp::Rcout<<" done! "<<std::endl;
+	//// Convert Rcpp vector
+	//Rcpp::NumericMatrix res(n+1,n+1);
+	////VecCol marginal_K{VecCol::Constant(n+1)};
+	////VecCol marginal_S{VecCol::Constant(n+1)};
+	//// Define grid search for k
+	//const unsigned int max_diff{std::max(Kstart-1,(int)n-Kstart)};
+	//std::vector<unsigned int> Ksearch;
+	//Ksearch.reserve(n);
+	//Ksearch.push_back( (unsigned int)Kstart );
+	//for(int i = 1; i <= max_diff; i++){
+		//if( (Kstart-i) > 0)
+			//Ksearch.push_back( (unsigned int)(Kstart-i) );
+		//if( (Kstart+i) <= n)
+			//Ksearch.push_back( (unsigned int)(Kstart+i) );
+	//}
+	//Rcpp::Rcout<<"Ksearch:"<<std::endl<<Ksearch<<std::endl;
+//	
+//
+	//double log_V{0.0};
+	//double log_SK{0.0};
+	//double joint_cumulated{0.0};
+	//unsigned int nelem_max = n*(n+3)/2;
+	//Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
+	//for(unsigned int it=0; it<Ksearch.size(); ++it){
+		//unsigned int k = Ksearch[it];
+		//// compute V number if never computed before
+		//if(logV_vec[k] == -inf)
+		    //logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+		//// get V number
+		//log_V = logV_vec[k];
+		//for(unsigned int s = 0; s <= k; s++){
+			//// Compute unnormalized probability
+					//Rcpp::Rcout<<"Calcolo log_SK:"<<std::endl;
+			//log_SK = compute_SK_prior_unnormalized_recursive(k, s, n_j, gamma_j);
+			////log_SK = compute_SK_prior_unnormalized_recursive(k, s, n_j, gamma_j, absC1, absC2);
+					//Rcpp::Rcout<<"log_SK = "<<log_SK<<std::endl;
+			//res(s,k) = std::exp(log_V + log_SK);
+			//joint_cumulated += res(s,k);
+			//Rcpp::Rcout<<"joint_cumulated:"<<std::endl<<joint_cumulated<<std::endl;
+		//}
+		////Check for User Interruption
+		//try{
+		    //Rcpp::checkUserInterrupt();
+		//}
+		//catch(Rcpp::internal::InterruptedException e){ 
+		    ////Print error and return
+		    //throw std::runtime_error("Execution stopped by the user");
+		//}
+		//progress_bar.increment(); //update progress bar
+		//if( 1.0 - joint_cumulated < 1e-10 )
+			//break;
+	//}
+	//return res;
+//}
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------
