@@ -114,6 +114,13 @@ log_Vprior_apprx3 <- function(k, n_i, tol, gamma, prior, prior_param, M_max) {
     .Call(`_HSSM_log_Vprior_apprx3`, k, n_i, tol, gamma, prior, prior_param, M_max)
 }
 
+#' log qM - Posterior evaluation
+#'
+#' @export
+log_qM_post <- function(m, prior, prior_param, k, n_j, gamma_j, log_V, M_max) {
+    .Call(`_HSSM_log_qM_post`, m, prior, prior_param, k, n_j, gamma_j, log_V, M_max)
+}
+
 #' 
 p_distinct_prior_c <- function(k, n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_p_distinct_prior_c`, k, n_j, gamma_j, prior, prior_param, M_max)
@@ -162,6 +169,11 @@ LowerBounds_c <- function(n_j, gamma_j, prior, prior_param, M_max) {
 #' 
 D_distinct_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec) {
     .Call(`_HSSM_D_distinct_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec)
+}
+
+#' 
+D_joint_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec) {
+    .Call(`_HSSM_D_joint_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec)
 }
 
 #' 

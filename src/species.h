@@ -260,6 +260,11 @@ double compute_Kprior_unnormalized_recursive(const unsigned int& k, const std::v
 //Direct formula per d=1 or d=2
 double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
+//Direct formula per d=1 or d=2: C numbers are passed as an input
+double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& s, 
+									 const std::vector<unsigned int>& n_i, const std::vector<double>& gamma,
+									 const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2 );
+
 //Recursive formula for d>2
 double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsigned int& s, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma);
 
@@ -267,6 +272,20 @@ double compute_SK_prior_unnormalized_recursive(const unsigned int& k, const unsi
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	A posteriori functions
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Rcpp::NumericVector log_qM_post(const unsigned int& m, 
+								const ComponentPrior& qM,
+								const unsigned int& k, const std::vector<unsigned int>& n_j, 
+								const std::vector<double>& gamma_j, double log_V, unsigned int M_max );
+
+//' log qM - Posterior evaluation
+//'
+//' @export
+// [[Rcpp::export]]
+Rcpp::NumericVector log_qM_post(const unsigned int& m, 
+								const Rcpp::String& prior, const Rcpp::List& prior_param,
+								const unsigned int& k, const std::vector<unsigned int>& n_j, 
+								const std::vector<double>& gamma_j, double log_V, unsigned int M_max );
 
 // NON USARLA, è BUGGATA
 std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
@@ -383,9 +402,14 @@ Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const st
 // [[Rcpp::export]] 
 Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
 										const Rcpp::String& prior, const Rcpp::List& prior_param, 
-										unsigned int M_max, 
-										const int& Kstart,
-										std::vector<double>& logV_vec   );
+										unsigned int M_max, const int& Kstart, std::vector<double>& logV_vec   );
+
+// Compute the whole joint distribution of the prior number of distinct and shared components
+//' 
+// [[Rcpp::export]] 
+Rcpp::NumericMatrix D_joint_prior_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+									 const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									 unsigned int M_max, const int& Kstart, std::vector<double>& logV_vec   );
 
 // Compute MCMC for Prior
 //' 
@@ -411,6 +435,8 @@ Rcpp::List Distinct_Prior_MCMC_c( Eigen::Matrix<unsigned int, Eigen::Dynamic, Ei
 				                  unsigned int M_max,
 				                  unsigned int seed
 				                );
+
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------
