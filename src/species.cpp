@@ -1320,7 +1320,6 @@ Rcpp::NumericVector log_qM_post(const unsigned int& m,
 								const unsigned int& k, const std::vector<unsigned int>& n_j, 
 								const std::vector<double>& gamma_j, double log_V, unsigned int M_max )
 {
-	//throw std::runtime_error("NON USARE, QUALCOSA NON VA ");
 	// Basic quantities
 	const unsigned int n{std::accumulate(n_j.cbegin(),n_j.cend(), 0)};
 	const unsigned int d{gamma_j.size()};
@@ -1338,13 +1337,14 @@ Rcpp::NumericVector log_qM_post(const unsigned int& m,
 		log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
 	
 	
-	double logqMpost =	-log_V + log_raising_factorial(k,m+1) +
+	double logqMpost =	log_raising_factorial(k,(double)m+1.0) +
 				  	  	qM.log_eval_prob(m+k) -
 				      	std::inner_product( n_j.cbegin(),n_j.cend(),gamma_j.cbegin(), 0.0, std::plus<>(),
 			       					[&m, &k](const unsigned int& nj, const double& gammaj){
 			       						return log_raising_factorial( nj, gammaj*(m + k) );
 			       					}
 			       		);
+	logqMpost -= log_V;
 	Rcpp::NumericVector res = {logqMpost,log_V}; 
 	return res;
 }
