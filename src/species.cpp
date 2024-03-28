@@ -3314,10 +3314,12 @@ double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
 	double temp{0.0};
 	for(std::size_t mstar = t; mstar < Natoms; mstar++){
 		log_res[counter] = v_log_qM_post[mstar] + (double)(mstar - t)*std::log(3.0) + gsl_sf_lnchoose(mstar,t);
-		temp = (1.0 + (double)t*C)*gsl_cdf_binomial_P(m-t, 2.0/3.0, mstar-t);
+		temp = (1.0 + 2.0*(double)t*C) * gsl_cdf_binomial_P(m-t, 2.0/3.0, mstar-t);
 
-		if( (mstar > t) & (mstar >= m) ){
-			temp -= ((double)(mstar-t) * C)/(3.0) * gsl_ran_binomial_pdf(m-t, 2.0/3.0, mstar-t-1);
+		if( mstar > t ){
+			temp += ( (double)(mstar-t) * C )/(3.0) *
+					( 3.0 * gsl_cdf_binomial_P(m-t-1, 2.0/3.0, mstar-t-1) - gsl_cdf_binomial_P(m-t, 2.0/3.0, mstar-t-1) ); 
+
 			if(temp < 0)
 				throw std::runtime_error("Error in p_shared_post_largen: Probability is less than 0.");
 		}
