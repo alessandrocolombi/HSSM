@@ -287,6 +287,11 @@ Rcpp::NumericVector log_qM_post(const unsigned int& m,
 								const unsigned int& k, const std::vector<unsigned int>& n_j, 
 								const std::vector<double>& gamma_j, double log_V, unsigned int M_max );
 
+
+std::vector<double> D_log_qM_post(	const ComponentPrior& qM,
+									const unsigned int& k, const std::vector<unsigned int>& n_j, 
+									const std::vector<double>& gamma_j, double log_V, unsigned int M_max );
+
 // NON USARLA, è BUGGATA
 std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
 									  const ComponentPrior& qM, unsigned int M_max = 100 );
@@ -440,8 +445,112 @@ Rcpp::List Distinct_Prior_MCMC_c( Eigen::Matrix<unsigned int, Eigen::Dynamic, Ei
 //	Large n regime
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
+double log_factorial_mom(const int& r, const std::vector<double>& v_log_qM_post);
 
+// ---- K post 
+double p_distinct_post_largen(	const unsigned int& r, const unsigned int& k, 
+								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						      	const std::vector<double>& gamma_j, 
+						      	const std::vector<double>& v_log_qM_post );
 
+double p_distinct_post_largen(	const unsigned int& r, const unsigned int& k, 
+								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						      	const std::vector<double>& gamma_j, 
+						      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						      	double log_V, unsigned int M_max );
+
+Rcpp::NumericVector D_distinct_post_largen(	const unsigned int& k, 
+											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	const std::vector<double>& gamma_j, 
+									      	const std::vector<double>& v_log_qM_post );
+
+Rcpp::NumericVector D_distinct_post_largen(	const unsigned int& k, 
+											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	const std::vector<double>& gamma_j, 
+									      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									      	double log_V, unsigned int M_max );
+
+// ---- (K,S) post 
+double p_jointKS_post_largen(	const unsigned int& r, const unsigned int& t,
+								const unsigned int& k, 
+								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						      	const std::vector<double>& gamma_j, 
+						      	const std::vector<double>& v_log_qM_post );
+
+double p_jointKS_post_largen(	const unsigned int& r, const unsigned int& t,
+								const unsigned int& k, 
+								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						      	const std::vector<double>& gamma_j, 
+						      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						      	double log_V, unsigned int M_max );
+
+Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k, 
+											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	const std::vector<double>& gamma_j, 
+									      	const std::vector<double>& v_log_qM_post );
+
+Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k, 
+											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	const std::vector<double>& gamma_j, 
+									      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									      	double log_V, unsigned int M_max );
+
+// ---- S post 
+double p_shared_post_largen(	const unsigned int& t, const unsigned int& k, 
+								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						      	const std::vector<double>& gamma_j, 
+						      	const std::vector<double>& v_log_qM_post );
+
+double p_shared_post_largen(	const unsigned int& t, const unsigned int& k, 
+								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						      	const std::vector<double>& gamma_j, 
+						      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						      	double log_V, unsigned int M_max );
+
+Rcpp::NumericVector D_shared_post_largen(	const unsigned int& k, 
+											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	const std::vector<double>& gamma_j, 
+									      	const std::vector<double>& v_log_qM_post );
+
+Rcpp::NumericVector D_shared_post_largen(	const unsigned int& k, 
+											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	const std::vector<double>& gamma_j, 
+									      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									      	double log_V, unsigned int M_max );
+
+// ---- K post - moments
+double Kpost_mom1_largen(	const unsigned int& k, 
+							const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						   	const std::vector<double>& gamma_j, 
+						   	const std::vector<double>& v_log_qM_post );
+
+double Kpost_mom1_largen(	const unsigned int& k, 
+							const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						    const std::vector<double>& gamma_j, 
+						    const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						    double log_V, unsigned int M_max );
+
+double Kpost_mom2_largen(	const unsigned int& k, 
+							const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						   	const std::vector<double>& gamma_j, 
+						   	const std::vector<double>& v_log_qM_post );
+
+double Kpost_mom2_largen(	const unsigned int& k, 
+							const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						    const std::vector<double>& gamma_j, 
+						    const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						    double log_V, unsigned int M_max );
+
+double Kpost_var_largen(	const unsigned int& k, 
+							const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						   	const std::vector<double>& gamma_j, 
+						   	const std::vector<double>& v_log_qM_post );
+
+double Kpost_var_largen(	const unsigned int& k, 
+							const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+						    const std::vector<double>& gamma_j, 
+						    const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						    double log_V, unsigned int M_max );
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
