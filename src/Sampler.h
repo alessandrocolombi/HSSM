@@ -10,39 +10,9 @@
 //#include "GSL_wrappers.h"
 //#include <gsl/gsl_sf.h>
 //#include "ComponentPrior_factory.h"
-#include "species.h"
+#include "GSL_wrappers.h"
 
-struct GS_data
-{
-    // sampler settings
-    unsigned int n_iter;
-    unsigned int burn_in;
-    unsigned int thin;
-    std::vector<double> X_j;
-    unsigned int d;
-    
-    // Lambda hyperparam
-    double Lambda0;
-    double V_Lambda;
-    // gamma_j hyperparam
-    double sigma2;
-    double a_gamma;
-    double b_gamma;
-    // gamma_j options
-    std::vector<double> adapt_var_gamma_j;
-    // beta hypeparam
-    double sigma2_beta;
-    // beta options
-    double adapt_var_beta;
-};
-
-struct return_obj
-{
-    std::vector<Rcpp::NumericVector> gammas;
-    Rcpp::NumericVector betas;
-    Rcpp::NumericVector Lambdas;
-    Rcpp::NumericVector logV; 
-};
+#include "GS_data_return_obj.h"
 
 class Sampler {
 public:
@@ -50,14 +20,10 @@ public:
     void sample();
 
     // Constructor 
-    Sampler( const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> & N_jk,
-             const GS_data & gs_data );
+    Sampler( const GS_data & __gs_data, unsigned int seed );
                 
     // Data structure for the output
     return_obj out;
-    
-    // Get n_j, for output C in a better way
-    //std::vector<unsigned int> get_nj() const {return gs_data.n_j;}
     
 private:
     //std::vector<std::shared_ptr<FullConditional> > FullConditionals; // vector of shared pointer to FC class
@@ -72,4 +38,4 @@ private:
 };
 
 
-#endif //GDFMM_GIBBSSAMPLER_H
+#endif 

@@ -559,25 +559,25 @@ double Kpost_var_largen(	const unsigned int& k,
 
 // This function computes prod_{i=1}^{n}( f(a_i*b_i) )
 // Questo è solo un test, sarebbe carinio farla che prende in input anche la funzione f() generica da applicare
-double combined_product(const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const unsigned int& Mstar, const unsigned int& k){
-
-	return (
-				std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 1.0, std::multiplies<>(),
-	    					   		[&Mstar, &k](const double& nj, const double& gamma_j){return (  (double)nj + gamma_j*(double)(Mstar + k)  );} 
-	    					   	  )
-			);
-}
-
-// This function computes sum_{i=1}^{n}( f(ni_i*gamma_i) )
-// Questo è solo un test, sarebbe carinio farla che prende in input anche la funzione f() generica da applicare
-double combined_sum(const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const unsigned int& Mstar, const unsigned int& k){
-
-	return (
-				std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
-	    					   		[&Mstar, &k](const double& nj, const double& gamma_j){return (  (double)nj + gamma_j*(double)(Mstar + k)  );} 
-	    					   	  )
-			);
-}
+//double combined_product(const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const unsigned int& Mstar, const unsigned int& k){
+//
+	//return (
+				//std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 1.0, std::multiplies<>(),
+	    					   		//[&Mstar, &k](const double& nj, const double& gamma_j){return (  (double)nj + gamma_j*(double)(Mstar + k)  );} 
+	    					   	  //)
+			//);
+//}
+//
+//// This function computes sum_{i=1}^{n}( f(ni_i*gamma_i) )
+//// Questo è solo un test, sarebbe carinio farla che prende in input anche la funzione f() generica da applicare
+//double combined_sum(const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const unsigned int& Mstar, const unsigned int& k){
+//
+	//return (
+				//std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
+	    					   		//[&Mstar, &k](const double& nj, const double& gamma_j){return (  (double)nj + gamma_j*(double)(Mstar + k)  );} 
+	    					   	  //)
+			//);
+//}
 
 
 

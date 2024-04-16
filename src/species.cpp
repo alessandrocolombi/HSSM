@@ -3676,8 +3676,8 @@ void Test_prod_sum(){
 	double max_log{log_a[idx]};
 	double max_nolog{a[idx]};
 
-	double res1 = combined_product(n,  gamma,  M,  k);
-	double res2 = combined_sum(n,  gamma,  M,  k);
+	//double res1 = combined_product(n,  gamma,  M,  k);
+	//double res2 = combined_sum(n,  gamma,  M,  k);
 
 	// Test log_stable_sum
 	double res3 = log_stable_sum(log_a, TRUE, max_log, idx);
@@ -3686,8 +3686,8 @@ void Test_prod_sum(){
 	double res5 = log_stable_sum(log_a, TRUE);
 	double res6 = log_stable_sum(a, FALSE);
 
-	Rcpp::Rcout<<"res combined_product = "<<res1<<std::endl;
-	Rcpp::Rcout<<"res combined_sum = "<<res2<<std::endl;
+	//Rcpp::Rcout<<"res combined_product = "<<res1<<std::endl;
+	//Rcpp::Rcout<<"res combined_sum = "<<res2<<std::endl;
 	Rcpp::Rcout<<"res log_stable_sum (log and max) = "<<res3<<std::endl;
 	Rcpp::Rcout<<"res log_stable_sum (no log and max) = "<<res4<<std::endl;
 	Rcpp::Rcout<<"res log_stable_sum (log) = "<<res5<<std::endl;
