@@ -69,7 +69,6 @@ void Sampler::sample() {
 }
 
 Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& N__jk,
-                          const std::vector<double>& X__j,
                           const std::vector<unsigned int>& n__j,
                           unsigned int r,
                           unsigned int niter, unsigned int nburn, unsigned int thin,
@@ -80,7 +79,7 @@ Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eige
   gs_data.use_covariates = Rcpp::as<bool>(option["use_covariates"]);
   // data
   gs_data.N_jk = N__jk;
-  gs_data.X_j = X__j;
+  gs_data.X_j = Rcpp::as<std::vector<double>>(option["X_j"]) ;
   gs_data.n_j = n__j;
   gs_data.Kobs = r;
   gs_data.d = gs_data.n_j.size();

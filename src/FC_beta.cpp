@@ -32,7 +32,7 @@ void FC_beta::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   if( u_acc  < std::min(1.0, acc) ){
     gs_data.beta = beta_prime;
     for(unsigned int j = 0; j < gs_data.d; j++)
-     gs_data.b_gamma[j] = std::exp(-gs_data.X_j[j]*gs_data.beta);
+     gs_data.b_gamma[j] = gs_data.a_gamma*std::exp(-gs_data.X_j[j]*gs_data.beta);
   }
 
 

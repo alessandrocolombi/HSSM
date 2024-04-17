@@ -48,7 +48,6 @@ private:
 //' @export
 // [[Rcpp::export]]
 Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& N__jk,
-                          const std::vector<double>& X__j,
                           const std::vector<unsigned int>& n__j,
                           unsigned int r,
                           unsigned int niter, unsigned int nburn, unsigned int thin,
