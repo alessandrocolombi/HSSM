@@ -20,7 +20,7 @@ void FC_beta::update(GS_data& gs_data, const sample::GSL_RNG& gs_engine){
   sample::runif runif;
   // Basic quantities
   double ww_g = std::pow( (double)(gs_data.iterations + 1), -0.7);
-  std::vector<double> gamma_j = gs_data.gamma_j;
+  std::vector<double>& gamma_j = gs_data.gamma_j;
   double beta_old   = gs_data.beta;
   // Draw proposed value
   double beta_prime =  rnorm(gs_engine, beta_old, std::sqrt(gs_data.adapt_var_beta));
