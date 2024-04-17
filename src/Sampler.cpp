@@ -44,6 +44,11 @@ void Sampler::sample() {
                 full_cond->update(gs_data, random_engine);
                 //Rcpp::Rcout<<" --> done! "<<std::endl;
             }
+            // Update logV
+            Rcpp::List prior_param = 	Rcpp::List::create( Rcpp::Named("lambda") = gs_data.Lambda);
+            auto qM_ptr = Wrapper_ComponentPrior("Poisson", prior_param);
+            ComponentPrior& qM(*qM_ptr);
+            gs_data.logV = compute_log_Vprior(gs_data.Kobs, gs_data.n_j, gs_data.gamma_j, qM, gs_data.M_max);
             //Rcpp::Rcout<<"********************************************"<<std::endl;
 
             //Check for User Interruption
@@ -105,7 +110,7 @@ Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eige
   gs_data.V_Lambda    = Rcpp::as<double>(option["V_Lambda"]);
   gs_data.sigma2      = Rcpp::as<double>(option["sigma2"]);
   gs_data.a_gamma     = Rcpp::as<double>(option["a_gamma"]);
-  gs_data.b_gamma     = Rcpp::as<double>(option["b_gamma"]);
+  gs_data.b_gamma     = Rcpp::as<std::vector<double>>(option["b_gamma"]);
   gs_data.sigma2_beta = Rcpp::as<double>(option["sigma2_beta"]);
   // MCMC options
   gs_data.adapt_var_gamma_j = Rcpp::as<std::vector<double>>(option["adapt_var_gamma_j"]);
