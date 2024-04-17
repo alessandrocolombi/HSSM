@@ -10,7 +10,10 @@
 
 class FC_beta: public FullConditional {
 protected:
-
+    double log_full_beta( const double beta,
+                          const std::vector<double>& gamma_j,
+                          const std::vector<double>& x_j,
+                          double sigma2, double sigma2_beta);
 public:
 
     FC_beta(std::string _na, bool _keepfixed);
