@@ -12,20 +12,25 @@ struct GS_data
     std::vector<double> X_j;
     std::vector<unsigned int> n_j;
     unsigned int d;
+    unsigned int Kobs;
 
     // sampler settings
     unsigned int n_iter;
     unsigned int burn_in;
     unsigned int thin;
+    unsigned int iterations;
 
     // current values
     std::vector<double> gamma_j;
     double beta;
     double Lambda;
-    
+    double logV;
+
     // Lambda hyperparam
     double Lambda0;
     double V_Lambda;
+    // Lambda options
+    bool FixedLambda;
 
     // gamma_j hyperparam
     double sigma2;
@@ -33,12 +38,17 @@ struct GS_data
     double b_gamma;
     // gamma_j options
     std::vector<double> adapt_var_gamma_j;
+    bool FixedGammas;
 
     // beta hypeparam
     double sigma2_beta;
     // beta options
     double adapt_var_beta;
     bool use_covariates;
+    bool FixedBeta;
+
+    // auxiliary options
+    unsigned int M_max;
 };
 
 struct return_obj
@@ -46,7 +56,7 @@ struct return_obj
     std::vector<Rcpp::NumericVector> gammas;
     Rcpp::NumericVector betas;
     Rcpp::NumericVector Lambdas;
-    Rcpp::NumericVector logV; 
+    Rcpp::NumericVector logV;
 };
 
-#endif 
+#endif

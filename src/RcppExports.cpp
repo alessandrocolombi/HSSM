@@ -12,6 +12,24 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// MCMC_Sampler_c
+Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& N__jk, const std::vector<double>& X__j, const std::vector<unsigned int>& n__j, unsigned int r, unsigned int niter, unsigned int nburn, unsigned int thin, const Rcpp::List& option);
+RcppExport SEXP _HSSM_MCMC_Sampler_c(SEXP N__jkSEXP, SEXP X__jSEXP, SEXP n__jSEXP, SEXP rSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP thinSEXP, SEXP optionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& >::type N__jk(N__jkSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type X__j(X__jSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n__j(n__jSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type r(rSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type niter(niterSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nburn(nburnSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type option(optionSEXP);
+    rcpp_result_gen = Rcpp::wrap(MCMC_Sampler_c(N__jk, X__j, n__j, r, niter, nburn, thin, option));
+    return rcpp_result_gen;
+END_RCPP
+}
 // raising_factorial
 double raising_factorial(const unsigned int& n, const double& a);
 RcppExport SEXP _HSSM_raising_factorial(SEXP nSEXP, SEXP aSEXP) {
@@ -414,6 +432,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_HSSM_MCMC_Sampler_c", (DL_FUNC) &_HSSM_MCMC_Sampler_c, 8},
     {"_HSSM_raising_factorial", (DL_FUNC) &_HSSM_raising_factorial, 2},
     {"_HSSM_log_raising_factorial", (DL_FUNC) &_HSSM_log_raising_factorial, 2},
     {"_HSSM_my_falling_factorial", (DL_FUNC) &_HSSM_my_falling_factorial, 2},

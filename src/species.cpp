@@ -3318,7 +3318,7 @@ double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
 
 		if( mstar > t ){
 			temp += ( (double)(mstar-t) * C )/(3.0) *
-					( 3.0 * gsl_cdf_binomial_P(m-t-1, 2.0/3.0, mstar-t-1) - gsl_cdf_binomial_P(m-t, 2.0/3.0, mstar-t-1) ); 
+					( 3.0 * gsl_cdf_binomial_P(m-t-1, 2.0/3.0, mstar-t-1) - gsl_cdf_binomial_P(m-t, 2.0/3.0, mstar-t-1) );
 
 			if(temp < 0)
 				throw std::runtime_error("Error in p_shared_post_largen: Probability is less than 0.");
