@@ -8,11 +8,11 @@ set_options_sampler = function( X_j = NULL,
                                 L0 = 100, V_Lambda = 100,
                                 sigma2_beta = 100, adapt_var_gamma_j = c(1,1),
                                 adapt_var_beta = 1,
-                                M_max = 1000,
+                                M_max = 1000, seed = 12345,
                                 gamma_guess = 1 )
 {
   d = length(gamma0)
-  sigma2 = (L0*L0)/(d*V_Lambda)
+  sigma2 = (d*V_Lambda)/(L0*L0)
   a_gamma = 1/sigma2
 
   if(use_covariates){
@@ -35,22 +35,28 @@ set_options_sampler = function( X_j = NULL,
               "sigma2" = sigma2,
               "sigma2_beta" = sigma2_beta, "adapt_var_gamma_j" = adapt_var_gamma_j,
               "adapt_var_beta" = adapt_var_beta, "a_gamma" = a_gamma, "b_gamma" = b_gamma,
-              "M_max" = M_max)
+              "M_max" = M_max, "seed" = seed)
   return(res)
 }
 
 #' Run MCMC Sampler
 #'
 #' @export
-MCMC_Sampler(counts_jk,niter,nburn = 0,thin = 1,option){
+MCMC_Sampler = function(counts_jk,niter,nburn = 0,thin = 1,option)
+{
   d = nrow(counts_jk)
   r = ncol(counts_jk)
   n =  sum(counts_jk)
   n_j = c(apply(counts_jk,1,sum))
   n_K = c(apply(counts_jk,2,sum))
-  if(any(n_K) == 0)
+  if( any(n_K== 0) )
     stop("Error: there are empty columns in counts_jk")
-  ## Qui checks se vuoi
+  if(length(n_j)!=length(option$gamma0))
+    stop("Error, the length of n_j (group sizes) and gamma has to be equal")
+  if(option$use_covariates){
+    if(mean(option$X_j)!= 0)
+      stop("Error: if use_covariates is TRUE, X_j must have zero mean")
+  }
 
   return( MCMC_Sampler_c(counts_jk,n_j,r,niter,nburn,thin,option) )
 }

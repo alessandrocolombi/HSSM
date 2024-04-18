@@ -4,8 +4,8 @@
 #' Sampler
 #'
 #' @export
-MCMC_Sampler_c <- function(N__jk, X__j, n__j, r, niter, nburn, thin, option) {
-    .Call(`_HSSM_MCMC_Sampler_c`, N__jk, X__j, n__j, r, niter, nburn, thin, option)
+MCMC_Sampler_c <- function(N__jk, n__j, r, niter, nburn, thin, option) {
+    .Call(`_HSSM_MCMC_Sampler_c`, N__jk, n__j, r, niter, nburn, thin, option)
 }
 
 #' 

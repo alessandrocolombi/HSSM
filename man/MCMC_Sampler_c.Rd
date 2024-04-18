@@ -4,7 +4,7 @@
 \alias{MCMC_Sampler_c}
 \title{Sampler}
 \usage{
-MCMC_Sampler_c()
+MCMC_Sampler_c(N__jk, n__j, r, niter, nburn, thin, option)
 }
 \description{
 Sampler

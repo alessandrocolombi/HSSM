@@ -29,7 +29,15 @@ void Sampler::sample() {
         // If we are in the right iteration store needed values
         // If burn_in is set to zero, the first values to be saved are the initial values.
         if(it>=gs_data.burn_in && (it-gs_data.burn_in)%gs_data.thin == 0){
-            //Rcpp::Rcout<<"it = "<<it<<std::endl;
+
+                    //Rcpp::Rcout<<"it = "<<it<<std::endl;
+                    //Rcpp::Rcout<<"Stampo gs_data.gamma_j: ";        
+                    //for(auto __v : gs_data.gamma_j)
+                        //Rcpp::Rcout<<__v<<", ";
+                    //Rcpp::Rcout<<std::endl;
+                    //Rcpp::Rcout<<"gs_data.Lambda = "<<gs_data.Lambda<<std::endl;
+                    //Rcpp::Rcout<<"gs_data.logV = "<<gs_data.logV<<std::endl;
+
             out.gammas.push_back( Rcpp::NumericVector (gs_data.gamma_j.begin(),gs_data.gamma_j.end()) );  //create temporary vector with current values within push_back call. It is as creating a temporary vector and push it back, but more efficient
             out.betas.push_back(gs_data.beta);
             out.Lambdas.push_back(gs_data.Lambda);
@@ -119,9 +127,10 @@ Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eige
 
   Sampler sampler(gs_data, Rcpp::as<unsigned int>(option["seed"]));
   sampler.sample();
-  return Rcpp::List::create( Rcpp::Named("gammas") = sampler.out.gammas,
-                             Rcpp::Named("betas") = sampler.out.betas,
-                             Rcpp::Named("Lambdas") = sampler.out.Lambdas,
-                             Rcpp::Named("logV") = sampler.out.logV
-                           );
+  Rcpp::List res = Rcpp::List::create( Rcpp::Named("gammas") = sampler.out.gammas,
+                                     Rcpp::Named("betas") = sampler.out.betas,
+                                     Rcpp::Named("Lambdas") = sampler.out.Lambdas,
+                                     Rcpp::Named("logV") = sampler.out.logV
+                                    );
+  return res;
 }
