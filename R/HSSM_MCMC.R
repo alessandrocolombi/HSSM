@@ -54,7 +54,7 @@ MCMC_Sampler = function(counts_jk,niter,nburn = 0,thin = 1,option)
   if(length(n_j)!=length(option$gamma0))
     stop("Error, the length of n_j (group sizes) and gamma has to be equal")
   if(option$use_covariates){
-    if(mean(option$X_j)!= 0)
+    if(mean(option$X_j) > 1e-10 )
       stop("Error: if use_covariates is TRUE, X_j must have zero mean")
   }
 
