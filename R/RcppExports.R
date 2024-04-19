@@ -139,6 +139,11 @@ p_shared_prior_c <- function(s, n_j, gamma_j, prior, prior_param, M_max) {
 }
 
 #' 
+p_joint_prior_c <- function(k, s, n_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_p_joint_prior_c`, k, s, n_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
 p_distinct_posterior_c <- function(r, k, m_j, n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_p_distinct_posterior_c`, r, k, m_j, n_j, gamma_j, prior, prior_param, M_max)
 }
@@ -179,8 +184,20 @@ D_distinct_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kstart, 
 }
 
 #' 
+#' Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1 
+D_distinct_prior_interval_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kmin, Kmax, logV_vec, print) {
+    .Call(`_HSSM_D_distinct_prior_interval_c`, n_j, gamma_j, prior, prior_param, M_max, Kmin, Kmax, logV_vec, print)
+}
+
+#' 
 D_joint_prior_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec) {
     .Call(`_HSSM_D_joint_prior_c`, n_j, gamma_j, prior, prior_param, M_max, Kstart, logV_vec)
+}
+
+#' 
+#' Compute the joint prior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
+D_joint_prior_square_c <- function(n_j, gamma_j, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logV_vec, print) {
+    .Call(`_HSSM_D_joint_prior_square_c`, n_j, gamma_j, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logV_vec, print)
 }
 
 #' 

@@ -352,6 +352,12 @@ double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j,
 double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
 					 	const Rcpp::List& prior_param, unsigned int M_max  );
 
+//' 
+// [[Rcpp::export]] 
+double p_joint_prior_c( const unsigned int& k, const unsigned int& s, 
+						const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+					 	const Rcpp::List& prior_param, unsigned int M_max  );
+
 
 //' 
 // [[Rcpp::export]] 
@@ -408,6 +414,14 @@ Rcpp::NumericVector LowerBounds_c(const std::vector<unsigned int>& n_j, const st
 Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
 										const Rcpp::String& prior, const Rcpp::List& prior_param, 
 										unsigned int M_max, const int& Kstart, std::vector<double>& logV_vec   );
+// Distinct prior
+//' 
+//' Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1 
+// [[Rcpp::export]] 
+Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+												 const Rcpp::String& prior, const Rcpp::List& prior_param, 
+												 unsigned int M_max, const int& Kmin, const int& Kmax,
+												 std::vector<double>& logV_vec, bool print );
 
 // Compute the whole joint distribution of the prior number of distinct and shared components
 //' 
@@ -416,6 +430,15 @@ Rcpp::NumericMatrix D_joint_prior_c( const std::vector<unsigned int>& n_j, const
 									 const Rcpp::String& prior, const Rcpp::List& prior_param, 
 									 unsigned int M_max, const int& Kstart, std::vector<double>& logV_vec   );
 
+// Joint Prior
+//' 
+//' Compute the joint prior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
+// [[Rcpp::export]] 
+Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+									 		const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									 		unsigned int M_max, 
+									 		const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+									 		std::vector<double>& logV_vec, bool print );
 // Compute MCMC for Prior
 //' 
 Rcpp::List  Distinct_Prior_MCMC( unsigned int Niter,

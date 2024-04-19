@@ -2186,6 +2186,33 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 	return res;
 }
 
+double p_joint_prior_c( const unsigned int& k, const unsigned int& s, 
+						const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+					 	const Rcpp::List& prior_param, unsigned int M_max  )
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Convert Rcpp vector
+	std::vector<unsigned int> n_i   = Rcpp::as< std::vector<unsigned int> >(n_j);
+	std::vector<double> gamma       = Rcpp::as< std::vector<double> >(gamma_j);
+
+	// Compute normalization constant
+			//Rcpp::Rcout<<"Calcolo log_V:"<<std::endl;
+	double log_V{ compute_log_Vprior(k, n_i, gamma, qM, M_max) };
+			//Rcpp::Rcout<<"log_V = "<<log_V<<std::endl;
+
+	// Compute unnormalized probability
+			//Rcpp::Rcout<<"Calcolo log_K:"<<std::endl;
+	double log_SK{compute_SK_prior_unnormalized_recursive(k, s, n_i, gamma)};
+			//Rcpp::Rcout<<"log_K = "<<log_K<<std::endl;
+
+	//return
+	return std::exp(log_V + log_SK);
+}
+
 double p_distinct_posterior_c(const unsigned int& r, const unsigned int& k, const Rcpp::NumericVector& m_j, const Rcpp::NumericVector& n_j,
 						      const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max )
 {
@@ -2590,6 +2617,74 @@ Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, co
 		res[k] = std::exp(log_V + log_K);
 		cumulated += res[k];
 		//Rcpp::Rcout<<"P(K <= "<<k<<") = "<<cumulated<<std::endl;
+		//Check for User Interruption
+		try{
+		    Rcpp::checkUserInterrupt();
+		}
+		catch(Rcpp::internal::InterruptedException e){
+		    //Print error and return
+		    throw std::runtime_error("Execution stopped by the user");
+		}
+		progress_bar.increment(); //update progress bar
+		//Rcpp::Rcout<<"k = "<<k<<std::endl;
+
+		if( 1.0 - cumulated < 1e-10 )
+			break;
+	}
+
+	return (res);
+}
+
+// Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1 
+Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+												 const Rcpp::String& prior, const Rcpp::List& prior_param, 
+												 unsigned int M_max, const int& Kmin, const int& Kmax,
+												 std::vector<double>& logV_vec, bool print )
+{
+	double inf = std::numeric_limits<double>::infinity();
+	// checks
+	if(n_j.size() != 2)
+		throw std::runtime_error("Error in D_distinct_prior_c: current implementation is only for d=2 groups ");
+	const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
+
+	// Initialize return quantities
+	Rcpp::NumericVector res(n+1, 0.0);
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Compute all C numbers required
+	if(print)
+		Rcpp::Rcout<<"Compute C numbers ... ";
+	Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+	Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+	if(print)
+		Rcpp::Rcout<<" done! "<<std::endl;
+
+	// Cycle for each k in Ksearch
+	double log_V{0.0};
+	double log_K{0.0};
+	double cumulated{0.0};
+	Progress progress_bar(n, TRUE); // Initialize progress bar
+	for(unsigned int k=Kmin; k<=Kmax; ++k){
+		if(print)
+			Rcpp::Rcout<<"k = "<<k<<" ... ";
+		// compute V number if never computed before
+		if(logV_vec[k] == -inf)
+		    logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+
+		// get V number
+		log_V = logV_vec[k];
+
+		log_K = compute_Kprior_unnormalized(k, n_j, gamma_j, absC1, absC2);
+		res[k] = std::exp(log_V + log_K);
+		cumulated += res[k];
+		if(print){
+			Rcpp::Rcout<<"done!"<<std::endl;
+			Rcpp::Rcout<<"P(K = "<<k<<") = "<<res[k]<<"; cumulative = "<<cumulated<<std::endl;
+		}
+
 		//Check for User Interruption
 		try{
 		    Rcpp::checkUserInterrupt();
@@ -3023,6 +3118,70 @@ Rcpp::NumericMatrix D_joint_prior_c( const std::vector<unsigned int>& n_j, const
 			res(s,k) = std::exp(log_V + log_SK); // save joint probability
 			joint_cumulated += res(s,k);         // update joint cumulated distribution
 					//Rcpp::Rcout<<"joint_cumulated:"<<std::endl<<joint_cumulated<<std::endl;
+		}
+		//Check for User Interruption
+		try{
+		    Rcpp::checkUserInterrupt();
+		}
+		catch(Rcpp::internal::InterruptedException e){
+		    //Print error and return
+		    throw std::runtime_error("Execution stopped by the user");
+		}
+		progress_bar.increment(); //update progress bar
+		if( 1.0 - joint_cumulated < 1e-10 )
+			break;
+	}
+	return res;
+}
+
+Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
+									 		const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									 		unsigned int M_max, 
+									 		const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+									 		std::vector<double>& logV_vec, bool print  )
+{
+	double inf = std::numeric_limits<double>::infinity();
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
+	// Compute all C numbers required
+	if(print)
+		Rcpp::Rcout<<"Compute C numbers ... ";
+	Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+	Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+	if(print)
+		Rcpp::Rcout<<" done! "<<std::endl;
+	// Convert Rcpp vector
+	Rcpp::NumericMatrix res(n+1,n+1);
+
+	double log_V{0.0};
+	double log_SK{0.0};
+	double joint_cumulated{0.0};
+	unsigned int nelem_max = (Kmax-Kmin)*(Smax-Smin);
+	Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
+	for(unsigned int k=Kmin; k<=Kmax; ++k){
+		// compute V number if never computed before
+		if(logV_vec[k] == -inf)
+		    logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+		// get V number
+		log_V = logV_vec[k];
+		// Loop over all possible s values
+		for(unsigned int s = 0; s <= k; s++){
+			if(print)
+				Rcpp::Rcout<<"s = "<<s<<"; k = "<<k<<" ... ";
+			// Compute unnormalized probability
+					//Rcpp::Rcout<<"Calcolo log_SK:"<<std::endl;
+			log_SK = compute_SK_prior_unnormalized(k, s, n_j, gamma_j, absC1, absC2);
+					//Rcpp::Rcout<<"log_SK = "<<log_SK<<std::endl;
+
+			res(s,k) = std::exp(log_V + log_SK); // save joint probability
+			joint_cumulated += res(s,k);         // update joint cumulated distribution
+			if(print){
+				Rcpp::Rcout<<"done!"<<std::endl;
+				Rcpp::Rcout<<"P(S = "<<s<<", K = "<<k<<") = "<<res(s,k)<<"; cumulative = "<<joint_cumulated<<std::endl;
+			}
 		}
 		//Check for User Interruption
 		try{
@@ -3667,8 +3826,8 @@ void Test_prod_sum(){
 
 	std::vector<unsigned int> n{1,1,1};
 	std::vector<double> gamma{1.0,2.0,3.0};
-	unsigned int M{2};
-	unsigned int k{0};
+	//unsigned int M{2};
+	//unsigned int k{0};
 
 	std::vector<double> log_a{1.0, 2.0, 1.0};
 	std::vector<double> a{ std::exp(1.0), std::exp(2.0), std::exp(1.0)};

@@ -1,6 +1,6 @@
 #include "FC_beta.h"
 
-FC_beta::FC_beta(std::string _na, bool _keepfixed) : FullConditional(_na,_keepfixed) {};
+FC_beta::FC_beta(std::string _na, bool _keepfixed) : FullConditional(_na,_keepfixed) {}
 
 double FC_beta::log_full_beta( const double beta,
                                const std::vector<double>& gamma_j,
