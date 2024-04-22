@@ -395,8 +395,11 @@ Eigen::VectorXd my_logC2_central(const unsigned int& n, const double& scale)
 // This is used in the code
 Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location){
 
-	if(!( (scale<0) & (location<=0) ) )
-		throw std::runtime_error("Error in my_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
+	if(!( (scale<0) & (location<=0) ) ){
+		Rcpp::Rcout<<"scale = "<<scale<<std::endl;
+		Rcpp::Rcout<<"location = "<<location<<std::endl;
+		throw std::runtime_error("Error in compute_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
+	}
 
 	const double& s = -scale; //s is strictly positive
 	const double& r = -location; //r is non-negative
@@ -2644,8 +2647,10 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 	double inf = std::numeric_limits<double>::infinity();
 	// checks
 	if(n_j.size() > 2)
-		throw std::runtime_error("Error in D_distinct_prior_c: current implementation is only for d=1 or d=2 groups ");
+		throw std::runtime_error("Error in D_distinct_prior_c: current implementation is only for d<=2 groups ");
+
 	const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
+	const unsigned int d = n_j.size();
 
 	// Initialize return quantities
 	Rcpp::NumericVector res(n+1, 0.0);
@@ -2653,54 +2658,101 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
 	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
-
-	// Compute all C numbers required
-	if(print)
-		Rcpp::Rcout<<"Compute C numbers ... ";
-	Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
-	Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
-	if(print)
-		Rcpp::Rcout<<" done! "<<std::endl;
-
-	// Cycle for each k in Ksearch
-	double log_V{0.0};
-	double log_K{0.0};
-	double cumulated{0.0};
-	Progress progress_bar(n, TRUE); // Initialize progress bar
-	for(unsigned int k=Kmin; k<=Kmax; ++k){
+	
+	if(d == 1){
 		if(print)
-			Rcpp::Rcout<<"k = "<<k<<" ... ";
-		// compute V number if never computed before
-		if(logV_vec[k] == -inf)
-		    logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+			Rcpp::Rcout<<"Compute C numbers (d=1) ... ";
+		Rcpp::NumericVector absC = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+		if(print)
+			Rcpp::Rcout<<" done! "<<std::endl;
+		// Cycle for each k in Ksearch
+		double log_V1{0.0};
+		double cumulated1{0.0};
+		Progress progress_bar1(n, TRUE); // Initialize progress bar
+		for(unsigned int k=Kmin; k<=Kmax; ++k){
+			if(print)
+				Rcpp::Rcout<<"k = "<<k<<" ... ";
+			// compute V number if never computed before
+			if(logV_vec[k] == -inf)
+			    logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
 
-		// get V number
-		log_V = logV_vec[k];
+			// get V number
+			log_V1 = logV_vec[k];
 
-		log_K = compute_Kprior_unnormalized(k, n_j, gamma_j, absC1, absC2);
-		res[k] = std::exp(log_V + log_K);
-		cumulated += res[k];
-		if(print){
-			Rcpp::Rcout<<"done!"<<std::endl;
-			Rcpp::Rcout<<"P(K = "<<k<<") = "<<res[k]<<"; cumulative = "<<cumulated<<std::endl;
+			res[k] = std::exp(log_V1 + absC[k]);
+			cumulated1 += res[k];
+			if(print){
+				Rcpp::Rcout<<"done!"<<std::endl;
+				Rcpp::Rcout<<"P(K = "<<k<<") = "<<res[k]<<"; cumulative = "<<cumulated1<<std::endl;
+			}
+			//Check for User Interruption
+			try{
+			    Rcpp::checkUserInterrupt();
+			}
+			catch(Rcpp::internal::InterruptedException e){
+			    //Print error and return
+			    throw std::runtime_error("Execution stopped by the user");
+			}
+			progress_bar1.increment(); //update progress bar
+
+			if( 1.0 - cumulated1 < 1e-10 )
+				break;
+		}
+		return res;
+	}
+	else if(d > 1){
+
+		// Compute all C numbers required
+		if(print)
+			Rcpp::Rcout<<"Compute C numbers ... ";
+
+		Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+		Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+		
+		if(print)
+			Rcpp::Rcout<<" done! "<<std::endl;
+
+		// Cycle for each k in Ksearch
+		double log_V{0.0};
+		double log_K{0.0};
+		double cumulated{0.0};
+		Progress progress_bar(n, TRUE); // Initialize progress bar
+		for(unsigned int k=Kmin; k<=Kmax; ++k){
+			if(print)
+				Rcpp::Rcout<<"k = "<<k<<" ... ";
+			// compute V number if never computed before
+			if(logV_vec[k] == -inf)
+			    logV_vec[k] = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+
+			// get V number
+			log_V = logV_vec[k];
+
+			log_K = compute_Kprior_unnormalized(k, n_j, gamma_j, absC1, absC2);
+			res[k] = std::exp(log_V + log_K);
+			cumulated += res[k];
+			if(print){
+				Rcpp::Rcout<<"done!"<<std::endl;
+				Rcpp::Rcout<<"P(K = "<<k<<") = "<<res[k]<<"; cumulative = "<<cumulated<<std::endl;
+			}
+
+			//Check for User Interruption
+			try{
+			    Rcpp::checkUserInterrupt();
+			}
+			catch(Rcpp::internal::InterruptedException e){
+			    //Print error and return
+			    throw std::runtime_error("Execution stopped by the user");
+			}
+			progress_bar.increment(); //update progress bar
+			//Rcpp::Rcout<<"k = "<<k<<std::endl;
+
+			if( 1.0 - cumulated < 1e-10 )
+				break;
 		}
 
-		//Check for User Interruption
-		try{
-		    Rcpp::checkUserInterrupt();
-		}
-		catch(Rcpp::internal::InterruptedException e){
-		    //Print error and return
-		    throw std::runtime_error("Execution stopped by the user");
-		}
-		progress_bar.increment(); //update progress bar
-		//Rcpp::Rcout<<"k = "<<k<<std::endl;
-
-		if( 1.0 - cumulated < 1e-10 )
-			break;
+		return (res);
 	}
 
-	return (res);
 }
 
 Rcpp::List Distinct_Prior_MCMC( unsigned int Niter,
