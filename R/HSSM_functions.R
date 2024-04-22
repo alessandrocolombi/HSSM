@@ -725,7 +725,66 @@ D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 1
   return (  D_joint_prior_square_c(n_j,gamma,prior,prior_params,Max_iter,Kmin,Kmax,Smin,Smax,logV_vec,print)  )
 }
 
+#' Compute posterior distribution
+#' @export
+D_joint_post_square = function(m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100, 
+                                Kmin, Kmax, Smin, Smax, 
+                                logVpost_vec = NULL, print = TRUE)
+{
+  l = list(...)
+  L = length(l)
+  n = sum(n_j)
+  m = sum(m_j)
 
+  if(is.null(logVpost_vec)){
+    logVpost_vec = rep(-Inf, m+1)
+  }
+
+  #checks
+  if(length(m_j)!=length(gamma))
+    stop("The length of m_j must be equal to the length of gamma")
+  if(length(n_j)!=length(gamma))
+      stop("The length of n_j must be equal to the length of gamma")
+  if( any(n_j<0) || any(gamma<=0) || any(m_j<0))
+    stop("The elements of n_j,m_j must the non negative and the elements of gamma must be strictly positive")
+  if(Max_iter<=0)
+    stop("The number of iterations must be strictly positive")
+  if(Kmin<0)
+    stop("The starting value for K must be >= 0")
+  if(Kmax>n)
+    stop("The maximum value for K must be <= n")
+  if(Smin<0)
+    stop("The starting value for S must be >= 0")
+  if(Smax>n)
+    stop("The maximum value for S must be <= n")
+  if(length(logVpost_vec)!=(m+1))
+    stop("Length of logVpost_vec must be equal to m+1. logVpost_vec=NULL is a valid option.")
+
+  # read prior parameters
+  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
+  if(prior == "Poisson"){
+    if(L!=1)
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
+    if(! names(l)=="lambda")
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
+
+    prior_params$lambda = l$lambda
+  }
+  else if(prior == "NegativeBinomial"){
+    if(L!=2)
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
+
+    prior_params$r = l$r
+    prior_params$p = l$p
+  }
+  else
+    stop("prior can only be equal to Poisson or NegativeBinomial")
+
+  # Compute non trivial cases
+  return (  D_joint_post_square_c( m_j,gamma,n_j,k,prior,prior_params,Max_iter,Kmin,Kmax,Smin,Smax,logVpost_vec,print) )
+}
 
 #' arrange_partition
 #'
@@ -817,5 +876,73 @@ NegBin_parametrization = function(mean,variance)
   return(res)
 }
 
-
+#' Train-Test dataset
+#'
+#' @export
+Ants_train_test = function(counts_long_all,d = 2,keep = 0.5,seed = 1234)
+{
+  # initialize long list with repeated labels
+  species_long_all = lapply(1:d, function(x){c()})
+  names(species_long_all) = levels(counts_long_all$site)
+  for(i in 1:nrow(counts_long_all)){
+    
+    if(counts_long_all[i,1] > 0){
+      counts = counts_long_all[i,1] # get number of repetitions
+      species = counts_long_all[i,2] # get species name
+      site = counts_long_all[i,3] # get area
+      
+      # repeat "species" for "counts" times and concatenate with past values in the same area
+      species_long_all[[site]] = c(species_long_all[[site]],
+                                   rep(as.character(species),counts))
+    }
+    
+  }
+  
+  # define sizes of training and testind dataset
+  n_j_train = ceiling(keep * n_j_all)
+  m_j_test  = n_j_all - n_j_train
+  
+  
+  # sample indexes of training sets in both populations
+  set.seed(seed) # set the seed for reproducibility
+  idx_train1 = sort(sample( seq_along(species_long_all[[1]]),
+                            size = n_j_train[1], replace = FALSE ))
+  idx_test1  = setdiff(seq_along(species_long_all[[1]]), idx_train1)
+  idx_train2 = sort(sample( seq_along(species_long_all[[2]]),
+                            size = n_j_train[2], replace = FALSE ))
+  idx_test2  = setdiff(seq_along(species_long_all[[2]]), idx_train1)
+  
+  
+  # initialize return objects
+  data_training = counts_all;data_training[,-1] = 0
+  data_test     = counts_all;data_test[,-1] = 0
+  
+  # compute frequecies in training and fill the return object
+  x = species_long_all[[1]][idx_train1];Tx = table(x);names_species1 = names(Tx)
+  y = species_long_all[[2]][idx_train1];Ty = table(y);names_species2 = names(Ty)
+  for(i in 1:length(Tx)){
+    data_training[1,names_species1[i]] = Tx[i]
+  }
+  for(i in 1:length(Ty)){
+    data_training[2,names_species2[i]] = Ty[i]
+  }
+  
+  # compute frequecies in test and fill the return object  
+  x = species_long_all[[1]][idx_test1];Tx = table(x);names_species1 = names(Tx)
+  y = species_long_all[[2]][idx_test2];Ty = table(y);names_species2 = names(Ty)
+  for(i in 1:length(Tx)){
+    data_test[1,names_species1[i]] = Tx[i]
+  }
+  for(i in 1:length(Ty)){
+    data_test[2,names_species2[i]] = Ty[i]
+  }
+  
+  # eliminate empty columns
+  data_training = data_training[,c(TRUE,apply(data_training[,-1], 2, sum)>0)]
+  data_test     = data_test[,c(TRUE,apply(data_test[,-1], 2, sum)>0)]
+  
+  res = list("data_training" = data_training,
+             "data_test" = data_test)
+  return(res)
+}
 

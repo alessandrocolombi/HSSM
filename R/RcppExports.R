@@ -205,6 +205,12 @@ Distinct_Prior_MCMC_c <- function(N, N_k, rho0, K0, Niter, n_j, gamma_j, prior, 
     .Call(`_HSSM_Distinct_Prior_MCMC_c`, N, N_k, rho0, K0, Niter, n_j, gamma_j, prior, prior_param, M_max, seed)
 }
 
+#' 
+#' Compute the joint posterior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
+D_joint_post_square_c <- function(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print) {
+    .Call(`_HSSM_D_joint_post_square_c`, m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

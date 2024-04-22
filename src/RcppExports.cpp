@@ -468,6 +468,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// D_joint_post_square_c
+Rcpp::NumericMatrix D_joint_post_square_c(const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j, const std::vector<unsigned int>& n_j, const unsigned int& k, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, std::vector<double>& logVpost_vec, bool print);
+RcppExport SEXP _HSSM_D_joint_post_square_c(SEXP m_jSEXP, SEXP gamma_jSEXP, SEXP n_jSEXP, SEXP kSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP KminSEXP, SEXP KmaxSEXP, SEXP SminSEXP, SEXP SmaxSEXP, SEXP logVpost_vecSEXP, SEXP printSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type m_j(m_jSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma_j(gamma_jSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    Rcpp::traits::input_parameter< const int& >::type Kmin(KminSEXP);
+    Rcpp::traits::input_parameter< const int& >::type Kmax(KmaxSEXP);
+    Rcpp::traits::input_parameter< const int& >::type Smin(SminSEXP);
+    Rcpp::traits::input_parameter< const int& >::type Smax(SmaxSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type logVpost_vec(logVpost_vecSEXP);
+    Rcpp::traits::input_parameter< bool >::type print(printSEXP);
+    rcpp_result_gen = Rcpp::wrap(D_joint_post_square_c(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Test_Prior
 void Test_Prior();
 RcppExport SEXP _HSSM_Test_Prior() {
@@ -517,6 +540,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_D_joint_prior_c", (DL_FUNC) &_HSSM_D_joint_prior_c, 7},
     {"_HSSM_D_joint_prior_square_c", (DL_FUNC) &_HSSM_D_joint_prior_square_c, 11},
     {"_HSSM_Distinct_Prior_MCMC_c", (DL_FUNC) &_HSSM_Distinct_Prior_MCMC_c, 11},
+    {"_HSSM_D_joint_post_square_c", (DL_FUNC) &_HSSM_D_joint_post_square_c, 13},
     {"_HSSM_Test_Prior", (DL_FUNC) &_HSSM_Test_Prior, 0},
     {"_HSSM_Test_prod_sum", (DL_FUNC) &_HSSM_Test_prod_sum, 0},
     {NULL, NULL, 0}

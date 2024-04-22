@@ -323,7 +323,14 @@ double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigne
 double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 		    const std::vector<double>& gamma);
 
-
+//Direct formula per d=2: C numbers are here passed as input.
+// r = distinct in new sample
+// t = shared in new sample
+// k = distinct in observed sample
+double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k, 
+									const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
+						 		    const std::vector<double>& gamma,
+						 		    const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2);
 // r = distinct in new sample
 // sigma = shared in new sample
 // k = distinct in observed sample
@@ -464,6 +471,16 @@ Rcpp::List Distinct_Prior_MCMC_c( Eigen::Matrix<unsigned int, Eigen::Dynamic, Ei
 				                  unsigned int seed
 				                );
 
+// Joint Posterior
+//' 
+//' Compute the joint posterior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
+// [[Rcpp::export]] 
+Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j, 
+										   const std::vector<unsigned int>& n_j, const unsigned int& k,
+									 	   const Rcpp::String& prior, const Rcpp::List& prior_param, 
+									 	   unsigned int M_max, 
+									 	   const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+									 	   std::vector<double>& logVpost_vec, bool print  );
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Large n regime
 //------------------------------------------------------------------------------------------------------------------------------------------------------
