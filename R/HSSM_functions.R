@@ -614,7 +614,7 @@ D_distinct_prior_interval = function( n_j, gamma, prior = "Poisson", ..., Max_it
     stop("prior can only be equal to Poisson or NegativeBinomial")
 
   # Compute non trivial cases
-  return (  D_distinct_prior_interval_c(n_j,gamma,prior,prior_params,Max_iter,Kmin,Kmax,logV_vec)  )
+  return (  D_distinct_prior_interval_c(n_j,gamma,prior,prior_params,Max_iter,Kmin,Kmax,logV_vec,print)  )
 }
 
 
@@ -722,7 +722,7 @@ D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 1
     stop("prior can only be equal to Poisson or NegativeBinomial")
 
   # Compute non trivial cases
-  return (  D_joint_prior_square_c(n_j,gamma,prior,prior_params,Max_iter,Kmin,Kmax,Smin,Smax,logV_vec)  )
+  return (  D_joint_prior_square_c(n_j,gamma,prior,prior_params,Max_iter,Kmin,Kmax,Smin,Smax,logV_vec,print)  )
 }
 
 

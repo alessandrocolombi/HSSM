@@ -2643,8 +2643,8 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 {
 	double inf = std::numeric_limits<double>::infinity();
 	// checks
-	if(n_j.size() != 2)
-		throw std::runtime_error("Error in D_distinct_prior_c: current implementation is only for d=2 groups ");
+	if(n_j.size() > 2)
+		throw std::runtime_error("Error in D_distinct_prior_c: current implementation is only for d=1 or d=2 groups ");
 	const unsigned int n = std::accumulate(n_j.cbegin(),n_j.cend(), 0.0);
 
 	// Initialize return quantities
