@@ -471,6 +471,16 @@ Rcpp::List Distinct_Prior_MCMC_c( Eigen::Matrix<unsigned int, Eigen::Dynamic, Ei
 				                  unsigned int seed
 				                );
 
+// Distinct Posterior
+//' 
+//' Compute the distinct posterior distribution in a given interval. Hence, in general, the returned values may not sum up to 1 
+// [[Rcpp::export]] 
+Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j,
+												const std::vector<unsigned int>& n_j, const unsigned int& k, 
+												const Rcpp::String& prior, const Rcpp::List& prior_param, 
+												unsigned int M_max, const int& Kmin, const int& Kmax,
+												std::vector<double>& logVpost_vec, bool print );
+
 // Joint Posterior
 //' 
 //' Compute the joint posterior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
