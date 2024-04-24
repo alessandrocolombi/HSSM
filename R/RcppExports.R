@@ -206,9 +206,27 @@ Distinct_Prior_MCMC_c <- function(N, N_k, rho0, K0, Niter, n_j, gamma_j, prior, 
 }
 
 #' 
+#' Compute the distinct posterior distribution in a given interval. Hence, in general, the returned values may not sum up to 1 
+D_distinct_post_interval_c <- function(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, logVpost_vec, print) {
+    .Call(`_HSSM_D_distinct_post_interval_c`, m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, logVpost_vec, print)
+}
+
+#' 
 #' Compute the joint posterior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
 D_joint_post_square_c <- function(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print) {
     .Call(`_HSSM_D_joint_post_square_c`, m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print)
+}
+
+#' 
+#' Compute the distinct posterior distribution in a given interval. Hence, in general, the returned values may not sum up to 1 
+D_jointKS_post_largen_c <- function(k, m_j, n_j, gamma_j, prior, prior_param, Kmin, Kmax, Smin, Smax, log_V, M_max) {
+    .Call(`_HSSM_D_jointKS_post_largen_c`, k, m_j, n_j, gamma_j, prior, prior_param, Kmin, Kmax, Smin, Smax, log_V, M_max)
+}
+
+#' 
+#' Compute the marginal predictive posterior distribution of the number of shared species in a single point named t
+p_shared_post_largen_c <- function(t, k, m_j, n_j, gamma_j, prior, prior_param, log_V, M_max) {
+    .Call(`_HSSM_p_shared_post_largen_c`, t, k, m_j, n_j, gamma_j, prior, prior_param, log_V, M_max)
 }
 
 #' Test ComponentPrior

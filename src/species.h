@@ -180,6 +180,7 @@ Eigen::VectorXd my_logC2_central(const unsigned int& n, const double& scale);
 // [[Rcpp::export]]
 Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location);
 
+Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location, const unsigned int& Kmax);
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Approximations for V
@@ -534,24 +535,36 @@ double p_jointKS_post_largen(	const unsigned int& r, const unsigned int& t,
 						      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
 						      	double log_V, unsigned int M_max );
 
-Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k, 
-											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
-									      	const std::vector<double>& gamma_j, 
-									      	const std::vector<double>& v_log_qM_post );
+Rcpp::NumericMatrix D_jointKS_post_largen_c( const unsigned int& k, 
+											 const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	 const std::vector<double>& gamma_j, 
+									      	 const std::vector<double>& v_log_qM_post,
+									      	 const unsigned int Kmin, const unsigned int Kmax,
+									      	 const unsigned int Smin, const unsigned int Smax );
 
-Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k, 
-											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
-									      	const std::vector<double>& gamma_j, 
-									      	const Rcpp::String& prior, const Rcpp::List& prior_param, 
-									      	double log_V, unsigned int M_max );
+// Distinct Posterior large n
+//' 
+//' Compute the distinct posterior distribution in a given interval. Hence, in general, the returned values may not sum up to 1 
+// [[Rcpp::export]] 
+Rcpp::NumericMatrix D_jointKS_post_largen_c( const unsigned int& k, 
+											 const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
+									      	 const std::vector<double>& gamma_j, 
+									      	 const Rcpp::String& prior, const Rcpp::List& prior_param,
+									      	 const unsigned int Kmin, const unsigned int Kmax,
+									      	 const unsigned int Smin, const unsigned int Smax, 
+									      	 double log_V, unsigned int M_max );
 
 // ---- S post 
-double p_shared_post_largen(	const unsigned int& t, const unsigned int& k, 
+double p_shared_post_largen_c(	const unsigned int& t, const unsigned int& k, 
 								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
 						      	const std::vector<double>& gamma_j, 
 						      	const std::vector<double>& v_log_qM_post );
 
-double p_shared_post_largen(	const unsigned int& t, const unsigned int& k, 
+// S postorior prob
+//' 
+//' Compute the marginal predictive posterior distribution of the number of shared species in a single point named t
+// [[Rcpp::export]] 
+double p_shared_post_largen_c(	const unsigned int& t, const unsigned int& k, 
 								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j, 
 						      	const std::vector<double>& gamma_j, 
 						      	const Rcpp::String& prior, const Rcpp::List& prior_param, 

@@ -430,6 +430,34 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 	return (LogC_old);
 }
 
+// This is the Pochhammer approximation formula, log|C(n,k)| for k=0,...,Kmax
+Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location, const unsigned int& Kmax)
+{
+
+	if(!( (scale<0) & (location<=0) ) ){
+		Rcpp::Rcout<<"scale = "<<scale<<std::endl;
+		Rcpp::Rcout<<"location = "<<location<<std::endl;
+		throw std::runtime_error("Error in compute_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
+	}
+
+	const double& s = -scale; //s is strictly positive
+	const double& r = -location; //r is non-negative
+
+
+	Rcpp::NumericVector res(Kmax+1, 0.0);
+
+	if(n == 0)
+		return Rcpp::NumericVector (1,0.0); // nothing to do in this case
+
+	for(std::size_t k=0; k <= Kmax; k++){
+		double x = (double)k * s + r;
+		res[k] = -gsl_sf_lnfact(k) + log_raising_factorial(n,x);
+	}
+
+	return res;
+}
+
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Approximations for V
 //------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1368,7 +1396,7 @@ std::vector<double> D_log_qM_post(	const ComponentPrior& qM,
 {
 	double inf = std::numeric_limits<double>::infinity();
 
-	unsigned int it_max{10000}; // set maximum number of evaluations for q_M post
+	unsigned int it_max{1000}; // set maximum number of evaluations for q_M post
 	std::vector<double> log_res; // initialize return vector. elements are in log scale
 	log_res.reserve(it_max);
 	double max{-inf}; // initialize max value in log_res
@@ -1385,7 +1413,6 @@ std::vector<double> D_log_qM_post(	const ComponentPrior& qM,
 			// if here, log_V was not provided and must be computed
 			log_V = temp[1];
 		}
-
 		log_res.push_back(temp[0]); // store result
 
 		// check for max
@@ -1396,7 +1423,6 @@ std::vector<double> D_log_qM_post(	const ComponentPrior& qM,
 
 		// compute cumulative probability. Note: this is not in log scale
 		double cum_P = std::exp(log_stable_sum(log_res,TRUE,max,idx_max));
-
 		// check if a sufficient amount of mass has been computed
 		if( 1.0-cum_P < 1e-10)
 			repeat = FALSE;
@@ -1407,6 +1433,7 @@ std::vector<double> D_log_qM_post(	const ComponentPrior& qM,
 		}
 
 		counter++; // update counter
+		mstar++;
 	}
 
 	return log_res;
@@ -3447,8 +3474,8 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 	Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 	if(print)
 		Rcpp::Rcout<<" done! "<<std::endl;
-	// Convert Rcpp vector
-	Rcpp::NumericMatrix res(n+1,n+1);
+
+	Rcpp::NumericMatrix res(n+1,n+1); // this is too big for large n
 
 	double log_V{0.0};
 	double log_SK{0.0};
@@ -3509,12 +3536,14 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	// Compute all C numbers required
 	if(print)
 		Rcpp::Rcout<<"Compute C numbers ... ";
+	//Rcpp::NumericVector absC1 = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] ), Kmax); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+	//Rcpp::NumericVector absC2 = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] ), Kmax); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 	Rcpp::NumericVector absC1 = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] )); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 	Rcpp::NumericVector absC2 = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] )); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
 	if(print)
 		Rcpp::Rcout<<" done! "<<std::endl;
-	// Convert Rcpp vector
-	Rcpp::NumericMatrix res(m+1,m+1);
+
+	Rcpp::NumericMatrix res(Kmax+1,Kmax+1);
 
 	double log_Vpost{0.0};
 	double log_SKpost{0.0};
@@ -3529,18 +3558,24 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 		log_Vpost = logVpost_vec[r];
 		//Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
 		// Loop over all possible s values
-		for(unsigned int s = 0; s <= r; s++){
-			if(print)
-				Rcpp::Rcout<<"s = "<<s<<"; r = "<<r<<" ... ";
-			// Compute unnormalized probability
-					//Rcpp::Rcout<<"Calcolo log_SKpost:"<<std::endl;
-			log_SKpost = compute_SK_post_unnormalized(r, s, k,m_j,n_j,gamma_j,absC1,absC2);
-					//Rcpp::Rcout<<"log_SKpost = "<<log_SKpost<<std::endl;
+		for(unsigned int s = Smin; s <= r; s++){
+			//if(print)
+				//Rcpp::Rcout<<"s = "<<s<<"; r = "<<r<<" ... ";
+			if(s > r){
+				res(s,r) = 0.0;
+			}
+			else{
+				// Compute unnormalized probability
+						//Rcpp::Rcout<<"Calcolo log_SKpost:"<<std::endl;
+				log_SKpost = compute_SK_post_unnormalized(r, s, k,m_j,n_j,gamma_j,absC1,absC2);
+						//Rcpp::Rcout<<"log_SKpost = "<<log_SKpost<<std::endl;
 
-			res(s,r) = std::exp(log_Vpost + log_SKpost); // save joint probability
+				res(s,r) = std::exp(log_Vpost + log_SKpost); // save joint probability	
+			}
+
 			joint_cumulated += res(s,r);         // update joint cumulated distribution
 			if(print){
-				Rcpp::Rcout<<"done!"<<std::endl;
+				//Rcpp::Rcout<<"done!"<<std::endl;
 				Rcpp::Rcout<<"P(S = "<<s<<", K = "<<r<<"|X) = "<<res(s,r)<<"; cumulative = "<<joint_cumulated<<std::endl;
 			}
 		}
@@ -3828,6 +3863,9 @@ double p_jointKS_post_largen(	const unsigned int& r, const unsigned int& t,
 
 	double log_fact_mom_r  = log_factorial_mom(r,v_log_qM_post);
 	double log_fact_mom_r1 = log_factorial_mom(r+1,v_log_qM_post);
+
+	Rcpp::Rcout<<"log_fact_mom_r = "<<log_fact_mom_r<<std::endl;
+	Rcpp::Rcout<<"log_fact_mom_r1 = "<<log_fact_mom_r1<<std::endl;
 	//std::vector<double> A_j(d,0.0);
 	std::vector<double> C_j(d,0.0);
 	double C{0.0};
@@ -3835,8 +3873,8 @@ double p_jointKS_post_largen(	const unsigned int& r, const unsigned int& t,
 		C_j[j] = gamma_j[j] * (double)m_j[j] / ((double)n_j[j]);
 		C += C_j[j];
 	}
-
-	res = std::exp( -std::log(2) + log_fact_mom_r  + std::log(2.0 + (3.0 * (double)r +(double)t)*C ) ) -
+	Rcpp::Rcout<<"C_j[0] = "<<C_j[0]<<"; C_j[1] = "<<C_j[1]<<"; C = "<<C<<std::endl;
+	res = std::exp( -std::log(2.0) + log_fact_mom_r  + std::log(2.0 + ( 3.0*(double)r +(double)t )*C ) ) -
 		  std::exp( log_fact_mom_r1 + std::log(C) );
 	if(res < 0){
 		throw std::runtime_error("Error in p_jointKS_post_largen: Probability is less than 0. ");
@@ -3867,27 +3905,33 @@ double p_jointKS_post_largen(	const unsigned int& r, const unsigned int& t,
 	return p_jointKS_post_largen(r,t,k,m_j,n_j,gamma_j,v_log_qM_post);
 }
 
-Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k,
+Rcpp::NumericMatrix D_jointKS_post_largen_c(	const unsigned int& k,
 											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
 									      	const std::vector<double>& gamma_j,
-									      	const std::vector<double>& v_log_qM_post )
+									      	const std::vector<double>& v_log_qM_post,
+									      	const unsigned int Kmin, const unsigned int Kmax,
+									      	const unsigned int Smin, const unsigned int Smax )
 {
 	const unsigned int m = std::accumulate(m_j.cbegin(), m_j.cend(), 0);
 
 	Rcpp::NumericMatrix res(m+1,m+1);
 	double jointPcum{0.0};
 	bool exit = FALSE;
-	for(std::size_t r=0; r <= m; r++){
+	for(std::size_t r=Kmin; r <= Kmax; r++){
 
 		if(exit)
 			break;
 
-		for(std::size_t t=0; t <= r; t++){
+		for(std::size_t t=Smin; t <= Smax; t++){
+
+			// t > r case in handled in p_jointKS_post_largen
 			res(t,r) = p_jointKS_post_largen(r, t, k, m_j, n_j, gamma_j, v_log_qM_post );
 
 			jointPcum += res(t,r);
-			if(1.0 - jointPcum < 1e-10)
-				exit = TRUE;
+
+			Rcpp::Rcout<<"P(S = "<<t<<", K = "<<r<<"|X) = "<<res(t,r)<<"; cumulative = "<<jointPcum<<std::endl;
+			//if(1.0 - jointPcum < 1e-10)
+				//exit = TRUE;
 
 			if(exit)
 				break;
@@ -3900,10 +3944,12 @@ Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k,
 	return res;
 }
 
-Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k,
+Rcpp::NumericMatrix D_jointKS_post_largen_c(	const unsigned int& k,
 											const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
 									      	const std::vector<double>& gamma_j,
 									      	const Rcpp::String& prior, const Rcpp::List& prior_param,
+									      	const unsigned int Kmin, const unsigned int Kmax,
+									      	const unsigned int Smin, const unsigned int Smax,
 									      	double log_V, unsigned int M_max )
 {
 
@@ -3919,11 +3965,11 @@ Rcpp::NumericMatrix D_jointKS_post_largen(	const unsigned int& k,
 
 	std::vector<double> v_log_qM_post = D_log_qM_post(qM, k, n_j, gamma_j, log_V, M_max );
 
-	return D_jointKS_post_largen(k,m_j,n_j,gamma_j,v_log_qM_post);
+	return D_jointKS_post_largen_c(k,m_j,n_j,gamma_j,v_log_qM_post,Kmin,Kmax,Smin,Smax);
 }
 
 // ---- S post
-double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
+double p_shared_post_largen_c(	const unsigned int& t, const unsigned int& k,
 								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
 						      	const std::vector<double>& gamma_j,
 						      	const std::vector<double>& v_log_qM_post )
@@ -3936,7 +3982,7 @@ double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
 	if(t > m)
 		return 0.0; // it is not possible to have more shared species than observations
 	if(Natoms == 0)
-		throw std::runtime_error("Error in p_shared_post_largen: v_log_qM_post is empty");
+		throw std::runtime_error("Error in p_shared_post_largen_c: v_log_qM_post is empty");
 
 	if(t >= Natoms)
 		return 0.0; // if here, Expected value is 0 beacuse q_M has no mass after mstar = t
@@ -3965,7 +4011,7 @@ double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
 					( 3.0 * gsl_cdf_binomial_P(m-t-1, 2.0/3.0, mstar-t-1) - gsl_cdf_binomial_P(m-t, 2.0/3.0, mstar-t-1) );
 
 			if(temp < 0)
-				throw std::runtime_error("Error in p_shared_post_largen: Probability is less than 0.");
+				throw std::runtime_error("Error in p_shared_post_largen_c: Probability is less than 0.");
 		}
 		log_res[counter] += std::log(temp);
 
@@ -3980,7 +4026,8 @@ double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
 	return std::exp(log_stable_sum(log_res,TRUE,max,idx_max));
 }
 
-double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
+
+double p_shared_post_largen_c(	const unsigned int& t, const unsigned int& k,
 								const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
 						      	const std::vector<double>& gamma_j,
 						      	const Rcpp::String& prior, const Rcpp::List& prior_param,
@@ -3993,12 +4040,13 @@ double p_shared_post_largen(	const unsigned int& t, const unsigned int& k,
 	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
 
 	// The correctness of log_V is not checked. If it is -inf, then log_V is computed
-	if(log_V == -inf)
+	if(log_V == -inf){
 		log_V = compute_log_Vprior(k, n_j, gamma_j, qM, M_max );
+	}
 
 	std::vector<double> v_log_qM_post = D_log_qM_post(qM, k, n_j, gamma_j, log_V, M_max );
 
-	return p_shared_post_largen(t,k,m_j,n_j,gamma_j,v_log_qM_post);
+	return p_shared_post_largen_c(t,k,m_j,n_j,gamma_j,v_log_qM_post);
 }
 
 Rcpp::NumericVector D_shared_post_largen(	const unsigned int& k,
@@ -4012,7 +4060,7 @@ Rcpp::NumericVector D_shared_post_largen(	const unsigned int& k,
 	double Pcum{0.0};
 
 	for(std::size_t t=0; t <= m; t++){
-		res[t] = p_shared_post_largen(t, k, m_j, n_j, gamma_j, v_log_qM_post );
+		res[t] = p_shared_post_largen_c(t, k, m_j, n_j, gamma_j, v_log_qM_post );
 		Pcum += res[t];
 		if(1.0 - Pcum < 1e-10)
 			break;

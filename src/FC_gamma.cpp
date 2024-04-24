@@ -11,6 +11,8 @@ double FC_gamma::log_full_gamma_j(double gammaj, double Lambda, double a_gamma, 
     temp += log_raising_factorial(n_jk(k), gammaj);
   }
   double res = (a_gamma - 1.0)*std::log(gammaj) - Lambda*b_gammaj*gammaj + logV + temp;
+  //Rcpp::Rcout<<"Prior contribution: "<<(a_gamma - 1.0)*std::log(gammaj) - Lambda*b_gammaj*gammaj<<std::endl;
+  //Rcpp::Rcout<<"Data  contribution: "<<"logV = "<<logV<<"; log_Pochh = "<<temp<<std::endl;
   return res;
 }
 

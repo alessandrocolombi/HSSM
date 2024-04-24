@@ -913,11 +913,122 @@ Distinct_Prior_MCMC = function( Niter, n_j, gamma_j, part_init = NULL,
                                  prior, prior_param,
                                  M_max, seed )
         )
-
 }
 
 
 
+#' p_shared_post_largen
+#'
+#' @export
+p_shared_post_largen = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., log_Vprior, Max_iter = 100){
+  l = list(...)
+  L = length(l)
+
+  #checks
+  if(length(n_j)!=length(gamma))
+    stop("The length of n_j must be equal to the length of gamma")
+  if(length(n_j)!=length(m_j))
+    stop("The length of m_j must be equal to the length of n_j")
+  if( any(m_j<0) || any(n_j<0) || any(gamma<=0) )
+    stop("The elements of n_j must the non negative and the elements of gamma must be strictly positive")
+  if(Max_iter<=0)
+    stop("The number of iterations must be strictly positive")
+
+  # read prior parameters
+  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
+  if(prior == "Poisson"){
+    if(L!=1)
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
+    if(! names(l)=="lambda")
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
+
+    prior_params$lambda = l$lambda
+  }
+  else if(prior == "NegativeBinomial"){
+    if(L!=2)
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
+
+    prior_params$r = l$r
+    prior_params$p = l$p
+  }
+  else
+    stop("prior can only be equal to Poisson or NegativeBinomial")
+
+  # Check Special cases
+  if(k < 0)
+    stop("Error, the number of distinct species k that have been observed can not be negative")
+  if(k == 0)
+    stop("The number of distinct species k that have been observed can not be 0. Such value makes no sense when sum(n_j)>0 and the behaviuor is left undefined when sum(n_j)=0. ")
+  if(sum(n_j) == 0)
+    cat("p_distinct_posterior has been called but vector n_i of previous observations is made of all zeros. Call the p_distinct_prior function instead. \n")
+  if(k > sum(n_j))
+    stop("It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined")
+  if(t<0)
+    stop("Error, the number of shared species t can not be negative")
+  if(t > min(m_j))
+    return (0)
+
+  # Compute non trivial cases
+  return (p_shared_post_largen_c(t, k, m_j, n_j, gamma, prior, prior_params, log_Vprior, Max_iter ) )
+}
+
+
+#' Compute posterior distribution large n
+#' @export
+D_joint_post_largen = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100, 
+                                Kmin, Kmax, Smin, Smax, 
+                                log_Vprior, print = TRUE)
+{
+  l = list(...)
+  L = length(l)
+  n = sum(n_j)
+  m = sum(m_j)
+
+  #checks
+  if(length(m_j)!=length(gamma))
+    stop("The length of m_j must be equal to the length of gamma")
+  if(length(n_j)!=length(gamma))
+      stop("The length of n_j must be equal to the length of gamma")
+  if( any(n_j<0) || any(gamma<=0) || any(m_j<0))
+    stop("The elements of n_j,m_j must the non negative and the elements of gamma must be strictly positive")
+  if(Max_iter<=0)
+    stop("The number of iterations must be strictly positive")
+  if(Kmin<0)
+    stop("The starting value for K must be >= 0")
+  if(Kmax>m)
+    stop("The maximum value for K must be <= m")
+  if(Smin<0)
+    stop("The starting value for S must be >= 0")
+  if(Smax>m)
+    stop("The maximum value for S must be <= m")
+
+  # read prior parameters
+  prior_params = list("lambda" = -1, "r" = -1, "p" = -1)
+  if(prior == "Poisson"){
+    if(L!=1)
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter expected ")
+    if(! names(l)=="lambda")
+      stop("Error when reading the prior parameters: when prior is Poisson, only one parameter named lambda is expected. The name must be passed explicitely ")
+
+    prior_params$lambda = l$lambda
+  }
+  else if(prior == "NegativeBinomial"){
+    if(L!=2)
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters expected ")
+    if( ! all( names(l) %in% names(prior_params) ) )  #check names
+      stop("Error when reading the prior parameters: when prior is NegativeBinomial, exactly two parameters named r and p are expected. The names must be passed explicitely ")
+
+    prior_params$r = l$r
+    prior_params$p = l$p
+  }
+  else
+    stop("prior can only be equal to Poisson or NegativeBinomial")
+
+  # Compute non trivial cases
+  return (  D_jointKS_post_largen_c( k,m_j,n_j,gamma,prior,prior_params,Kmin,Kmax,Smin,Smax,log_Vprior,Max_iter ) )
+}
 
 #' Negative Binomial parametrization
 #'
