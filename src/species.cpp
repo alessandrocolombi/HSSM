@@ -3548,7 +3548,7 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	double log_Vpost{0.0};
 	double log_SKpost{0.0};
 	double joint_cumulated{0.0};
-	unsigned int nelem_max = (Kmax-Kmin)*(Smax-Smin);
+	unsigned int nelem_max = (Kmax-Kmin)*(Kmax-Kmin);
 	Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
 	for(unsigned int r=Kmin; r<=Kmax; ++r){
 		// compute V number if never computed before
@@ -3590,7 +3590,7 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 		if(print)
 			progress_bar.increment(); //update progress bar
 
-		if( 1.0 - joint_cumulated < 1e-10 )
+		if( 1.0 - joint_cumulated < 1e-4 )
 			break;
 	}
 	return res;

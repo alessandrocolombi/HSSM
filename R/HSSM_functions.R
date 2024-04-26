@@ -566,7 +566,7 @@ D_distinct_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
 
 #' Compute prior distribution
 #' @export
-D_distinct_prior_interval = function( n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
+D_distinct_prior_interval = function( n_j, gamma, prior = "Poisson", ..., Max_iter = 100,
                                       Kmin, Kmax, logV_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -669,8 +669,8 @@ D_joint_prior = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, Kst
 
 #' Compute prior distribution
 #' @export
-D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100, 
-                                Kmin, Kmax, Smin, Smax, 
+D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 100,
+                                Kmin, Kmax, Smin, Smax,
                                 logV_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -727,8 +727,8 @@ D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 1
 
 #' Compute posterior distribution
 #' @export
-D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100, 
-                                     Kmin, Kmax, Smin, Smax, 
+D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100,
+                                     Kmin, Kmax, Smin, Smax,
                                      logVpost_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -784,8 +784,8 @@ D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ...,
 
 #' Compute posterior distribution
 #' @export
-D_joint_post_square = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100, 
-                                Kmin, Kmax, Smin, Smax, 
+D_joint_post_square = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100,
+                                Kmin, Kmax, Smin, Smax,
                                 logVpost_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -977,8 +977,8 @@ p_shared_post_largen = function(t, k, m_j, n_j, gamma, prior = "Poisson", ..., l
 
 #' Compute posterior distribution large n
 #' @export
-D_joint_post_largen = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100, 
-                                Kmin, Kmax, Smin, Smax, 
+D_joint_post_largen = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100,
+                                Kmin, Kmax, Smin, Smax,
                                 log_Vprior, print = TRUE)
 {
   l = list(...)
@@ -1053,24 +1053,24 @@ Ants_train_test = function(counts_long_all,d = 2,keep = 0.5,seed = 1234)
   species_long_all = lapply(1:d, function(x){c()})
   names(species_long_all) = levels(counts_long_all$site)
   for(i in 1:nrow(counts_long_all)){
-    
+
     if(counts_long_all[i,1] > 0){
       counts = counts_long_all[i,1] # get number of repetitions
       species = counts_long_all[i,2] # get species name
       site = counts_long_all[i,3] # get area
-      
+
       # repeat "species" for "counts" times and concatenate with past values in the same area
       species_long_all[[site]] = c(species_long_all[[site]],
                                    rep(as.character(species),counts))
     }
-    
+
   }
-  
+
   # define sizes of training and testind dataset
   n_j_train = ceiling(keep * n_j_all)
   m_j_test  = n_j_all - n_j_train
-  
-  
+
+
   # sample indexes of training sets in both populations
   set.seed(seed) # set the seed for reproducibility
   idx_train1 = sort(sample( seq_along(species_long_all[[1]]),
@@ -1079,12 +1079,12 @@ Ants_train_test = function(counts_long_all,d = 2,keep = 0.5,seed = 1234)
   idx_train2 = sort(sample( seq_along(species_long_all[[2]]),
                             size = n_j_train[2], replace = FALSE ))
   idx_test2  = setdiff(seq_along(species_long_all[[2]]), idx_train1)
-  
-  
+
+
   # initialize return objects
   data_training = counts_all;data_training[,-1] = 0
   data_test     = counts_all;data_test[,-1] = 0
-  
+
   # compute frequecies in training and fill the return object
   x = species_long_all[[1]][idx_train1];Tx = table(x);names_species1 = names(Tx)
   y = species_long_all[[2]][idx_train1];Ty = table(y);names_species2 = names(Ty)
@@ -1094,8 +1094,8 @@ Ants_train_test = function(counts_long_all,d = 2,keep = 0.5,seed = 1234)
   for(i in 1:length(Ty)){
     data_training[2,names_species2[i]] = Ty[i]
   }
-  
-  # compute frequecies in test and fill the return object  
+
+  # compute frequecies in test and fill the return object
   x = species_long_all[[1]][idx_test1];Tx = table(x);names_species1 = names(Tx)
   y = species_long_all[[2]][idx_test2];Ty = table(y);names_species2 = names(Ty)
   for(i in 1:length(Tx)){
@@ -1104,13 +1104,39 @@ Ants_train_test = function(counts_long_all,d = 2,keep = 0.5,seed = 1234)
   for(i in 1:length(Ty)){
     data_test[2,names_species2[i]] = Ty[i]
   }
-  
+
   # eliminate empty columns
   data_training = data_training[,c(TRUE,apply(data_training[,-1], 2, sum)>0)]
   data_test     = data_test[,c(TRUE,apply(data_test[,-1], 2, sum)>0)]
-  
+
   res = list("data_training" = data_training,
              "data_test" = data_test)
+  return(res)
+}
+
+### credible intervals
+Find_Credible_Int = function(pmf, q = c(0.025,0.975))
+{
+  res = c(0,0)
+  cdf = cumsum(pmf)
+  stop_lower <- stop_upper <- stop <- FALSE
+  i = 1
+  while(!stop){
+    if(cdf[i] > q[1] & stop_lower == FALSE){
+      res[1] = i
+      stop_lower = TRUE
+    }
+    if(cdf[i] > q[2] & stop_upper == FALSE){
+      res[2] = i
+      stop_upper = TRUE
+    }
+    if(stop_lower & stop_upper)
+      stop = TRUE
+
+    i = i+1
+    if(i > length(cdf))
+      stop = TRUE
+  }
   return(res)
 }
 
