@@ -2922,7 +2922,7 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 	const unsigned int d = n_j.size();
 
 	// Initialize return quantities
-	Rcpp::NumericVector res(n+1, 0.0);
+	Rcpp::NumericVector res(Kmax+1, 0.0);
 	// Component prior preliminary operations
 	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
 	ComponentPrior& qM(*qM_ptr);
@@ -3475,7 +3475,7 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 	if(print)
 		Rcpp::Rcout<<" done! "<<std::endl;
 
-	Rcpp::NumericMatrix res(n+1,n+1); // this is too big for large n
+	Rcpp::NumericMatrix res(Kmax+1,Kmax+1); // this is too big for large n
 
 	double log_V{0.0};
 	double log_SK{0.0};
