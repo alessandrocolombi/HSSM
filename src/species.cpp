@@ -3914,7 +3914,7 @@ Rcpp::NumericMatrix D_jointKS_post_largen_c(	const unsigned int& k,
 {
 	const unsigned int m = std::accumulate(m_j.cbegin(), m_j.cend(), 0);
 
-	Rcpp::NumericMatrix res(m+1,m+1);
+	Rcpp::NumericMatrix res(Kmax+1,Kmax+1);
 	double jointPcum{0.0};
 	bool exit = FALSE;
 	for(std::size_t r=Kmin; r <= Kmax; r++){
