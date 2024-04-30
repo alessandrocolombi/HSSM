@@ -16,6 +16,7 @@ D_joint_post_square_c(
   Kmax,
   Smin,
   Smax,
+  approxC,
   logVpost_vec,
   print
 )

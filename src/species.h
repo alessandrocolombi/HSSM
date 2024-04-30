@@ -491,6 +491,7 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 									 	   const Rcpp::String& prior, const Rcpp::List& prior_param, 
 									 	   unsigned int M_max, 
 									 	   const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+									 	   const bool& approxC,
 									 	   std::vector<double>& logVpost_vec, bool print  );
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Large n regime

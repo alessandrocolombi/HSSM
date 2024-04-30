@@ -399,7 +399,7 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 		Rcpp::Rcout<<"location = "<<location<<std::endl;
 		throw std::runtime_error("Error in compute_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
 	}
-
+	Rcpp::Rcout<<" ... Exact Calculation ... "<<std::endl;
 	const double& s = -scale; //s is strictly positive
 	const double& r = -location; //r is non-negative
 
@@ -443,7 +443,7 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 	const double& s = -scale; //s is strictly positive
 	const double& r = -location; //r is non-negative
 
-
+	Rcpp::Rcout<<" ... Pochhammer approximation ... "<<std::endl;
 	Rcpp::NumericVector res(Kmax+1, 0.0);
 
 	if(n == 0)
@@ -3022,6 +3022,10 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 
 		return (res);
 	}
+
+	// Should not arrive here
+	throw std::runtime_error("Error in D_distinct_prior_interval_c: Should not arrive here. ");
+	return res;
 }
 
 Rcpp::List Distinct_Prior_MCMC( unsigned int Niter,
@@ -3524,6 +3528,7 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 									 	   const Rcpp::String& prior, const Rcpp::List& prior_param, 
 									 	   unsigned int M_max, 
 									 	   const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+									 	   const bool& approxC,
 									 	   std::vector<double>& logVpost_vec, bool print  )
 {
 	double inf = std::numeric_limits<double>::infinity();
@@ -3536,10 +3541,24 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	// Compute all C numbers required
 	if(print)
 		Rcpp::Rcout<<"Compute C numbers ... ";
-	//Rcpp::NumericVector absC1 = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] ), Kmax); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
-	//Rcpp::NumericVector absC2 = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] ), Kmax); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
-	Rcpp::NumericVector absC1 = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] )); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
-	Rcpp::NumericVector absC2 = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] )); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+
+	Rcpp::NumericVector absC1;
+	Rcpp::NumericVector absC2;
+	Rcpp::NumericVector logC1_temp;
+	Rcpp::NumericVector logC2_temp;
+
+	if(approxC){
+		logC1_temp = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] ), Kmax); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+		logC2_temp = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] ), Kmax); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+	}
+	else{
+		logC1_temp = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] )); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+		logC2_temp = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] )); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+	}
+	absC1 = logC1_temp;
+	absC2 = logC2_temp;
+	
+	
 	if(print)
 		Rcpp::Rcout<<" done! "<<std::endl;
 
@@ -3717,6 +3736,9 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 
 		return (res);
 	}
+	// Should not arrive here
+	throw std::runtime_error("Error in D_distinct_post_interval_c: Should not arrive here. ");
+	return res;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------

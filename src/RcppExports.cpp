@@ -490,8 +490,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // D_joint_post_square_c
-Rcpp::NumericMatrix D_joint_post_square_c(const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j, const std::vector<unsigned int>& n_j, const unsigned int& k, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, std::vector<double>& logVpost_vec, bool print);
-RcppExport SEXP _HSSM_D_joint_post_square_c(SEXP m_jSEXP, SEXP gamma_jSEXP, SEXP n_jSEXP, SEXP kSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP KminSEXP, SEXP KmaxSEXP, SEXP SminSEXP, SEXP SmaxSEXP, SEXP logVpost_vecSEXP, SEXP printSEXP) {
+Rcpp::NumericMatrix D_joint_post_square_c(const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j, const std::vector<unsigned int>& n_j, const unsigned int& k, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max, const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, const bool& approxC, std::vector<double>& logVpost_vec, bool print);
+RcppExport SEXP _HSSM_D_joint_post_square_c(SEXP m_jSEXP, SEXP gamma_jSEXP, SEXP n_jSEXP, SEXP kSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP, SEXP KminSEXP, SEXP KmaxSEXP, SEXP SminSEXP, SEXP SmaxSEXP, SEXP approxCSEXP, SEXP logVpost_vecSEXP, SEXP printSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -506,9 +506,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type Kmax(KmaxSEXP);
     Rcpp::traits::input_parameter< const int& >::type Smin(SminSEXP);
     Rcpp::traits::input_parameter< const int& >::type Smax(SmaxSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type approxC(approxCSEXP);
     Rcpp::traits::input_parameter< std::vector<double>& >::type logVpost_vec(logVpost_vecSEXP);
     Rcpp::traits::input_parameter< bool >::type print(printSEXP);
-    rcpp_result_gen = Rcpp::wrap(D_joint_post_square_c(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print));
+    rcpp_result_gen = Rcpp::wrap(D_joint_post_square_c(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, approxC, logVpost_vec, print));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -603,7 +604,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_D_joint_prior_square_c", (DL_FUNC) &_HSSM_D_joint_prior_square_c, 11},
     {"_HSSM_Distinct_Prior_MCMC_c", (DL_FUNC) &_HSSM_Distinct_Prior_MCMC_c, 11},
     {"_HSSM_D_distinct_post_interval_c", (DL_FUNC) &_HSSM_D_distinct_post_interval_c, 11},
-    {"_HSSM_D_joint_post_square_c", (DL_FUNC) &_HSSM_D_joint_post_square_c, 13},
+    {"_HSSM_D_joint_post_square_c", (DL_FUNC) &_HSSM_D_joint_post_square_c, 14},
     {"_HSSM_D_jointKS_post_largen_c", (DL_FUNC) &_HSSM_D_jointKS_post_largen_c, 12},
     {"_HSSM_p_shared_post_largen_c", (DL_FUNC) &_HSSM_p_shared_post_largen_c, 9},
     {"_HSSM_Test_Prior", (DL_FUNC) &_HSSM_Test_Prior, 0},

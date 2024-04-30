@@ -213,8 +213,8 @@ D_distinct_post_interval_c <- function(m_j, gamma_j, n_j, k, prior, prior_param,
 
 #' 
 #' Compute the joint posterior distribution in a given square. Hence, in general, the returned values may not sum up to 1 
-D_joint_post_square_c <- function(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print) {
-    .Call(`_HSSM_D_joint_post_square_c`, m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, logVpost_vec, print)
+D_joint_post_square_c <- function(m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, approxC, logVpost_vec, print) {
+    .Call(`_HSSM_D_joint_post_square_c`, m_j, gamma_j, n_j, k, prior, prior_param, M_max, Kmin, Kmax, Smin, Smax, approxC, logVpost_vec, print)
 }
 
 #' 

@@ -786,6 +786,7 @@ D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ...,
 #' @export
 D_joint_post_square = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100,
                                 Kmin, Kmax, Smin, Smax,
+                                approxC = TRUE,
                                 logVpost_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -840,7 +841,7 @@ D_joint_post_square = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_
     stop("prior can only be equal to Poisson or NegativeBinomial")
 
   # Compute non trivial cases
-  return (  D_joint_post_square_c( m_j,gamma,n_j,k,prior,prior_params,Max_iter,Kmin,Kmax,Smin,Smax,logVpost_vec,print) )
+  return (  D_joint_post_square_c( m_j,gamma,n_j,k,prior,prior_params,Max_iter,Kmin,Kmax,Smin,Smax,approxC,logVpost_vec,print) )
 }
 
 #' arrange_partition
