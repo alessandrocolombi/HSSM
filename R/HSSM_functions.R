@@ -1184,8 +1184,8 @@ BO_MomEst = function(n_j,K12,S12,
         ExpS = 1000*S12
       }
 
-      err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
-      # err = abs(ExpK-K12)/K12 + abs(ExpS-S12)/S12
+      # err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
+      err = abs(ExpK-K12)/K12 + abs(ExpS-S12)/S12
 
       cat("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
       return( err )
