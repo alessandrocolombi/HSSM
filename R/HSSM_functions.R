@@ -1173,16 +1173,21 @@ BO_MomEst = function(n_j,K12,S12,
       marginals$S = apply(SK_joint,1,sum)
       marginals$K = apply(SK_joint,2,sum)
 
+      ExpK = mean( sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax)]) )
+      ExpS = mean( sample(Smin:Smax, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Smax)+1]) )
+
       check = sapply(marginals,sum)
       if( check[1]<0.99 || check[2]<0.99 ){
         cat("\n gamma_j = ",gamma_j,"lambda = ",lambda," \n")
-        stop("NON sommano a 1")
+        cat("NON sommano a 1")
+        ExpK = 1000*K12
+        ExpS = 1000*S12
       }
 
-      ExpK = mean( sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax)]) )
-      ExpS = mean( sample(Smin:Smax, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Smax)+1]) )
       err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
-      print("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
+      # err = abs(ExpK-K12)/K12 + abs(ExpS-S12)/S12
+
+      cat("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
       return( err )
     },
 
