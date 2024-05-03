@@ -1175,13 +1175,14 @@ BO_MomEst = function(n_j,K12,S12,
 
       check = sapply(marginals,sum)
       if( check[1]<0.99 || check[2]<0.99 ){
-        cat("\n it_i = ",it_i,"; it_j = ",it_j,"; it_k = ",it_k,"\n")
+        cat("\n gamma_j = ",gamma_j,"lambda = ",lambda," \n")
         stop("NON sommano a 1")
       }
 
       ExpK = mean( sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax)]) )
       ExpS = mean( sample(Smin:Smax, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Smax)+1]) )
       err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
+      print("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
       return( err )
     },
 

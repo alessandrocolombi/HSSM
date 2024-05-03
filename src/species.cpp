@@ -3525,7 +3525,7 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 		    throw std::runtime_error("Execution stopped by the user");
 		}
 		progress_bar.increment(); //update progress bar
-		if( 1.0 - joint_cumulated < 1e-10 )
+		if( 1.0 - joint_cumulated < 1e-4 )
 			break;
 	}
 	return res;
