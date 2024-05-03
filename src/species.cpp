@@ -399,7 +399,7 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 		Rcpp::Rcout<<"location = "<<location<<std::endl;
 		throw std::runtime_error("Error in compute_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
 	}
-	Rcpp::Rcout<<" ... Exact Calculation ... "<<std::endl;
+	//Rcpp::Rcout<<" ... Exact Calculation ... "<<std::endl;
 	const double& s = -scale; //s is strictly positive
 	const double& r = -location; //r is non-negative
 
@@ -426,6 +426,14 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 
 		//std::copy(LogC_update.begin(),LogC_update.end(),LogC_old.begin());
 		std::swap(LogC_old, LogC_update); //avoid copy, LogC_update has to be overwritten but in this way no copy is performed to update LogC_old.
+		//Check for User Interruption
+		try{
+		    Rcpp::checkUserInterrupt();
+		}
+		catch(Rcpp::internal::InterruptedException e){
+		    //Print error and return
+		    throw std::runtime_error("Execution stopped by the user");
+		}
 	}
 	return (LogC_old);
 }
