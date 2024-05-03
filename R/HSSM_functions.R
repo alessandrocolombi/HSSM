@@ -1141,3 +1141,184 @@ Find_Credible_Int = function(pmf, q = c(0.025,0.975))
   return(res)
 }
 
+
+
+
+#' Moment estimator - BO
+#'
+#' @export
+BO_MomEst = function(n_j,K12,S12,
+                     Kmin = 1,Kmax = 100,Smin = 0,Smax = 100,
+                     gamma_LB , gamma_UB,
+                     lambda_LB, lambda_UB,
+                     BO_iterations = 50,
+                     Max_iter = 100){
+  library(mlrMBO)
+  obj.fun <- makeSingleObjectiveFunction(
+    # give a name to the objective function
+    name = "Mom_Estimator",
+    fn = function(x) {
+      gamma_j = c(x[1],x[2])
+      lambda = x[3]
+      prior = "Poisson"
+      SK_joint = D_joint_prior_square(n_j = n_j, gamma = gamma_j,
+                                      prior = prior, lambda = lambda,
+                                      Max_iter = 100,
+                                      Kmin = Kmin, Kmax = Kmax,
+                                      Smin = Smin, Smax = Smax,
+                                      logV_vec = NULL, print = FALSE)
+
+      marginals = vector("list",2)
+      names(marginals) = c("K","S")
+      marginals$S = apply(SK_joint,1,sum)
+      marginals$K = apply(SK_joint,2,sum)
+
+      check = sapply(marginals,sum)
+      if( check[1]<0.99 || check[2]<0.99 ){
+        cat("\n it_i = ",it_i,"; it_j = ",it_j,"; it_k = ",it_k,"\n")
+        stop("NON sommano a 1")
+      }
+
+      ExpK = mean( sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax)]) )
+      ExpS = mean( sample(Smin:Smax, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Smax)+1]) )
+      err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
+      return( err )
+    },
+
+    # define if the objective function has to be minimized or maximized (i.e., accuracy must be maximized)
+    minimize = T,
+
+    # define the search space
+    # nome - lower and upper bound
+    par.set = makeParamSet(
+      makeNumericParam("gamma1", lower = gamma_LB, upper = gamma_UB),
+      makeNumericParam("gamma2", lower = gamma_LB, upper = gamma_UB),
+      makeNumericParam("lambda", lower = lambda_LB,  upper = lambda_UB)
+    )
+  )
+
+
+  # STEP 2: generation of the initial design
+  des = generateDesign( n=5, getParamSet(obj.fun), fun=lhs::randomLHS )
+  des$y = apply( des, 1, obj.fun )
+
+  # STEP 4: Sequential process and acquisition
+  control = makeMBOControl()
+  control = setMBOControlTermination( control, iters=BO_iterations )
+
+  # Run optimization
+  res <- suppressWarnings(mbo(obj.fun, design=des, show.info=T , control = control))
+  print(res)
+
+  result = list("gamma1" = res$x$gamma1,
+                "gamma2" = res$x$gamma2,
+                "lambda" = res$x$lambda,
+                "error"  = res$y)
+  return(result)
+  # # retrieving and plotting results
+  # best.seen <- getOptPathY(res$opt.path)
+  # # best.seen <- c( max(best.seen[1:5]), best.seen[6:15] )
+  # plot( cummin(best.seen), type="o", lwd=3, col="blue",
+  #       ylim=c(0,10),
+  #       ylab="best seen", xlab="trials")
+  # lines( best.seen, type="o", lty=2, col="green", lwd=3 )
+  # legend( "topright", legend=c("best seen","path"), col=c("blue","green"), lty=1:2, lwd=3, pch=1 )
+}
+
+#' Rarefaction curves
+#'
+#' @export
+Rarefaction_curves = function(data, Nsort = 2, seed0 = 220424 ){
+
+  add = function(x){Reduce("+", x)} # used to sum vectors/matrices stored in elements of a list
+  data = data[apply(data,1,sum)>0,]
+  d = ncol(data)
+  r = nrow(data)
+  n_j  = apply(data,2,sum)
+  n    = sum(n_j)
+
+
+  species_long_all = lapply(1:d, function(x){c()})
+  names(species_long_all) = c("A1","A2")
+
+  for(i in 1:r){
+    for(j in 1:d){
+      if(data[i,j] > 0){
+        counts = data[i,j] # get number of repetitions
+        species = i # get species name
+        site = names(species_long_all)[j] # get area
+
+        # repeat "species" for "counts" times and concatenate with past values in the same area
+        species_long_all[[site]] = c(species_long_all[[site]],
+                                     rep(as.character(species),counts))
+      }
+    }
+  }
+
+  set.seed(seed0)
+  seeds = sample(1:99999,size = Nsort,replace = TRUE)
+  K12obs_n <- K1obs_n <- K2obs_n <- S12obs_n <- lapply(1:Nsort,function(x){c()})
+
+  for(it in 1:Nsort){
+    cat("\n it = ",it,"\n")
+    set.seed(seeds[it])
+    new_idx1 = sample(1:n_j[1],size = n_j[1], replace = F)
+    new_idx2 = sample(1:n_j[2],size = n_j[2], replace = F)
+    new_idx12 = sample(1:n,size = n, replace = F)
+    X1_reordered = species_long_all[[1]][new_idx1]
+    X2_reordered = species_long_all[[2]][new_idx2]
+    temp = tibble(species = c(X1_reordered,X2_reordered),
+                  site    = c(rep(names(species_long_all)[1],n_j[1]),
+                              rep(names(species_long_all)[2],n_j[2]))
+    )
+    temp_reordered = temp[new_idx12,]
+    species_ordered_n = tibble(species = as.character(1:r),
+                               counts_A1 = rep(0,r),
+                               counts_A2 = rep(0,r) )
+
+    pb = txtProgressBar(min = 0, max = n, initial = 0)
+    for(i in 1:n){
+      temp = temp_reordered[i,]
+      j = -1
+      if(temp$site == names(species_long_all)[1]){
+        j = 1
+      }else if(temp$site == names(species_long_all)[2]){
+        j = 2
+      }else{
+        stop("ERRORE")
+      }
+
+      species_ordered_n[which(species_ordered_n$species == temp$species),j+1] = species_ordered_n[which(species_ordered_n$species == temp$species),j+1] + 1
+
+      K12obs_n[[it]] = c(K12obs_n[[it]],nrow(species_ordered_n[apply(species_ordered_n[,-1],1,sum)>0,]))
+      K1obs_n[[it]]  = c(K1obs_n[[it]],length(which(species_ordered_n[,2]>0)))
+      K2obs_n[[it]]  = c(K2obs_n[[it]],length(which(species_ordered_n[,3]>0)))
+      setTxtProgressBar(pb,i)
+    }
+    close(pb)
+    S12obs_n[[it]] = K1obs_n[[it]] + K2obs_n[[it]] - K12obs_n[[it]]
+  }
+
+
+
+  K12obs_mean = add(K12obs_n)/Nsort
+  K1obs_mean = add(K1obs_n)/Nsort
+  K2obs_mean = add(K2obs_n)/Nsort
+  S12obs_mean = add(S12obs_n)/Nsort
+
+  ## plot
+
+  ## return
+  res = list("K12obs_mean"  = K12obs_mean,
+             "S12obs_mean" = S12obs_mean)
+  return(res)
+}
+
+
+
+
+
+
+
+
+
