@@ -1163,7 +1163,7 @@ BO_MomEst = function(n_j,K12,S12,
       prior = "Poisson"
       SK_joint = D_joint_prior_square(n_j = n_j, gamma = gamma_j,
                                       prior = prior, lambda = lambda,
-                                      Max_iter = 100,
+                                      Max_iter = Max_iter,
                                       Kmin = Kmin, Kmax = Kmax,
                                       Smin = Smin, Smax = Smax,
                                       logV_vec = NULL, print = FALSE)
