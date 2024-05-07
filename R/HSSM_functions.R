@@ -1399,6 +1399,256 @@ BO_MomEst_multiple = function(n_j_list,v_K12,v_S12,
 }
 
 
+#' Moment estimator - BO
+#'
+#' @export
+BO_MomEst_NB = function(n_j,
+                         K12,S12,K1,K2,
+                         Kmin = 1,Kmax = 100,Smin = 0,Smax = 100,
+                         gamma_LB , gamma_UB,
+                         mu0_LB, mu0_UB, r_LB, r_UB,
+                         BO_iterations = 50,
+                         Max_iter = 100,
+                         perr = 2, pesi= c(0.25,0.25,0.25,0.25) )
+{
+  library(mlrMBO)
+  obj.fun <- makeSingleObjectiveFunction(
+    # give a name to the objective function
+    name = "Mom_Estimator",
+    fn = function(x) {
+      gamma_j = c(x[1],x[2])
+      mu0 = x[3]
+      r   = x[4]
+      p = r/(mu0+r)
+      prior = "NegativeBinomial"
+
+      ## Global quantities
+      SK_joint = D_joint_prior_square(n_j = n_j, gamma = gamma_j,
+                                      prior = prior, p = p, r = r,
+                                      Max_iter = Max_iter,
+                                      Kmin = Kmin, Kmax = Kmax,
+                                      Smin = Smin, Smax = Smax,
+                                      logV_vec = NULL, print = FALSE)
+
+      marginals = vector("list",2)
+      names(marginals) = c("K","S")
+      marginals$S = apply(SK_joint,1,sum)
+      marginals$K = apply(SK_joint,2,sum)
+
+      ExpK = mean( sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax)]) )
+      ExpS = mean( sample(Smin:Smax, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Smax)+1]) )
+
+      check = sapply(marginals,sum)
+      if( check[1]<0.99 || check[2]<0.99 ){
+        cat("\n gamma_j = ",gamma_j,"; mu0 = ",mu0,"; r = ",r," \n")
+        cat("NON sommano a 1")
+        ExpK = 1000*K12
+        ExpS = 1000*S12
+      }
+
+      ## Local quantities
+      K_prior = D_distinct_prior_interval(n_j = n_j[1], gamma = gamma_j[1],
+                                          prior = prior, p = p, r = r,
+                                          Max_iter = 100,
+                                          Kmin = Kmin, Kmax = Kmax,
+                                          logV_vec = NULL, print = FALSE)
+
+
+      xK = sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = K_prior[(Kmin:Kmax)])
+      qK = quantile(xK, probs = c(0.025,0.975))
+      ExpK1 = mean( xK )
+      K_prior = D_distinct_prior_interval(n_j = n_j[2], gamma = gamma_j[2],
+                                          prior = prior, p = p, r = r,
+                                          Max_iter = 100,
+                                          Kmin = Kmin, Kmax = Kmax,
+                                          logV_vec = NULL, print = FALSE)
+
+
+      xK = sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = K_prior[(Kmin:Kmax)])
+      qK = quantile(xK, probs = c(0.025,0.975))
+      ExpK2 = mean( xK )
+
+      v_err = c( (ExpK-K12)/K12,
+                 (ExpS-S12)/S12,
+                 (ExpK1-K1)/K1,
+                 (ExpK2-K2)/K2 )
+      err = Inf
+      if(perr == 1)
+        err = sum( abs(pesi*v_err) )
+      if(perr == 2)
+        err = sum( (pesi*v_err)^2   )
+      if(perr == Inf)
+        err = max( abs(pesi*v_err)  )
+
+      # err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
+      # err = abs(ExpK-K12)/K12 + abs(ExpS-S12)/S12
+
+      cat("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
+      cat("\n ExpK1 = ",ExpK1,"; ExpK2 = ",ExpK2,"\n")
+      return( err )
+    },
+
+    # define if the objective function has to be minimized or maximized (i.e., accuracy must be maximized)
+    minimize = T,
+
+    # define the search space
+    # nome - lower and upper bound
+    par.set = makeParamSet(
+      makeNumericParam("gamma1", lower = gamma_LB, upper = gamma_UB),
+      makeNumericParam("gamma2", lower = gamma_LB, upper = gamma_UB),
+      makeNumericParam("mu0",    lower = mu0_LB,   upper = mu0_UB),
+      makeNumericParam("r",      lower = r_LB,     upper = r_UB)
+    )
+  )
+
+
+  # STEP 2: generation of the initial design
+  des = generateDesign( n=5, getParamSet(obj.fun), fun=lhs::randomLHS )
+  des$y = apply( des, 1, obj.fun )
+
+  # STEP 4: Sequential process and acquisition
+  control = makeMBOControl()
+  control = setMBOControlTermination( control, iters=BO_iterations )
+
+  # Run optimization
+  res <- suppressWarnings(mbo(obj.fun, design=des, show.info=T , control = control))
+  # print(res)
+  best.seen <- getOptPathY(res$opt.path)
+  result = list("gamma1" = res$x$gamma1,
+                "gamma2" = res$x$gamma2,
+                "mu0" = res$x$mu0,
+                "r" = res$x$r,
+                "error"  = res$y,
+                "best.seen" = best.seen)
+  return(result)
+}
+
+#' Moment estimator - BO
+#'
+#' @export
+BO_MomEst_multiple_NB = function(n_j_list,v_K12,v_S12,
+                              Kmin = 1,Kmax = 100,
+                              Smin = 0,Smax = 100,
+                              gamma_LB , gamma_UB,
+                              mu0_LB, mu0_UB, r_LB, r_UB,
+                              BO_iterations = 100,
+                              Max_iter = 100,
+                              perr = 2, c1 = 0.5, c2 = 0.5)
+{
+  L = length(n_j_list)
+  if(length(v_K12)!=L)
+    stop("length of v_K12 is not the same as n_j_list")
+  if(length(v_S12)!=L)
+    stop("length of v_S12 is not the same as n_j_list")
+  if(perr != 2 & perr != 1 & perr != Inf)
+    stop("p can only be 1,2,Inf")
+  if((c1+c2) != 1)
+    stop("c1 and c2 must sum up to 1")
+
+  library(mlrMBO)
+  obj.fun <- makeSingleObjectiveFunction(
+    # give a name to the objective function
+    name = "Mom_Estimator",
+    fn = function(x) {
+      gamma_j = c(x[1],x[2])
+      mu0 = x[3]
+      r   = x[4]
+      p = r/(mu0+r)
+      prior = "NegativeBinomial"
+      v_errK <- v_errS <- v_ExpK <- v_ExpS <- rep(-1,L)
+
+      for(it in 1:L){
+        n_j_it = n_j_list[[it]]
+        K12_it = v_K12[it]
+        S12_it = v_S12[it]
+        Kmin_it = min(Kmin,sum(n_j_it))
+        Smin_it = min(Smin,sum(n_j_it))
+        Kmax_it = min(Kmax,sum(n_j_it))
+        Smax_it = min(Smax,sum(n_j_it))
+        SK_joint = D_joint_prior_square(n_j = n_j_it, gamma = gamma_j,
+                                        prior = prior, p = p, r = r,
+                                        Max_iter = Max_iter,
+                                        Kmin = Kmin_it, Kmax = Kmax_it,
+                                        Smin = Smin_it, Smax = Smax_it,
+                                        logV_vec = NULL, print = FALSE)
+
+        marginals = vector("list",2)
+        names(marginals) = c("K","S")
+        marginals$S = apply(SK_joint,1,sum)
+        marginals$K = apply(SK_joint,2,sum)
+
+        check = sapply(marginals,sum)
+        if( check[1]<0.99 || check[2]<0.99 ){
+          cat("\n gamma_j = ",gamma_j,"; mu0 = ",mu0,"; r = ",r," \n")
+          cat("NON sommano a 1")
+          v_ExpK[it] = 1000*K12_it
+          v_ExpS[it] = 1000*S12_it
+        }else{
+          v_ExpK[it] = mean( sample(Kmin_it:Kmax_it, size = 10000,replace = TRUE, prob = marginals$K[(Kmin_it:Kmax_it)]) )
+          v_ExpS[it] = mean( sample(Smin_it:Smax_it, size = 10000,replace = TRUE, prob = marginals$S[(Smin_it:Smax_it)+1]) )
+        }
+        v_errK[it] = (v_ExpK[it]-K12_it)/K12_it
+        v_errS[it] = (v_ExpS[it]-S12_it)/S12_it
+        # v_err[it] = abs(v_ExpK[it]-K12_it)/K12_it + abs(v_ExpS[it]-S12_it)/S12_it
+      }
+      cat("\n v_ExpK = ")
+      print(v_ExpK)
+      cat("\n v_ExpS = ")
+      print(v_ExpS)
+
+      err = Inf
+      if(perr == 1)
+        err = sum( c1*abs(v_errK) + c2*abs(v_errS) )
+      if(perr == 2)
+        err = sum( c1*(v_errK)^2 + c2*(v_errS)^2   )
+      if(perr == Inf)
+        err = max( c1*abs(v_errK) + c2*abs(v_errS)   )
+      return( err )
+    },
+
+    # define if the objective function has to be minimized or maximized (i.e., accuracy must be maximized)
+    minimize = T,
+
+    # define the search space
+    # nome - lower and upper bound
+    par.set = makeParamSet(
+      makeNumericParam("gamma1", lower = gamma_LB, upper = gamma_UB),
+      makeNumericParam("gamma2", lower = gamma_LB, upper = gamma_UB),
+      makeNumericParam("mu0",    lower = mu0_LB,   upper = mu0_UB),
+      makeNumericParam("r",      lower = r_LB,     upper = r_UB)
+    )
+  )
+
+
+  # STEP 2: generation of the initial design
+  des = generateDesign( n=5, getParamSet(obj.fun), fun=lhs::randomLHS )
+  des$y = apply( des, 1, obj.fun )
+
+  # STEP 4: Sequential process and acquisition
+  control = makeMBOControl()
+  control = setMBOControlTermination( control, iters=BO_iterations )
+
+  # Run optimization
+  res <- suppressWarnings(mbo(obj.fun, design=des, show.info=T , control = control))
+  # print(res)
+  best.seen <- getOptPathY(res$opt.path)
+  result = list("gamma1" = res$x$gamma1,
+                "gamma2" = res$x$gamma2,
+                "mu0" = res$x$mu0,
+                "r" = res$x$r,
+                "error"  = res$y,
+                "best.seen" = best.seen)
+  return(result)
+  # # retrieving and plotting results
+
+  # plot( cummin(best.seen), type="o", lwd=3, col="blue",
+  #       ylim=c(0,10),
+  #       ylab="best seen", xlab="trials")
+  # lines( best.seen, type="o", lty=2, col="green", lwd=3 )
+  # legend( "topright", legend=c("best seen","path"), col=c("blue","green"), lty=1:2, lwd=3, pch=1 )
+}
+
+
 #' Rarefaction curves
 #'
 #' @export

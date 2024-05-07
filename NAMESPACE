@@ -2,7 +2,9 @@
 
 export(Ants_train_test)
 export(BO_MomEst)
+export(BO_MomEst_NB)
 export(BO_MomEst_multiple)
+export(BO_MomEst_multiple_NB)
 export(D_distinct_post_interval)
 export(D_distinct_prior)
 export(D_distinct_prior_interval)

@@ -2,6 +2,7 @@
 #define ___FC_LAMBDA_H___
 
 #include "FullConditional.h"
+#include "species.h"
 //#include <gsl/gsl_randist.h>
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -10,7 +11,7 @@
 
 class FC_Lambda: public FullConditional {
 protected:
-
+    double log_full_lambda(double x, double logV, double a_Lambda, double b_Lambda);
 public:
 
     FC_Lambda(std::string _na, bool _keepfixed);

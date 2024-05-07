@@ -31,6 +31,7 @@ struct GS_data
     double V_Lambda;
     // Lambda options
     bool FixedLambda;
+    double adapt_var_Lambda;
 
     // gamma_j hyperparam
     double sigma2;

@@ -20,13 +20,8 @@ protected:
 public:
 
     FC_gamma(std::string _na, bool _keepfixed);
-
     void update(GS_data& gs_data, const sample::GSL_RNG& gs_engine) override;
-
     ~FC_gamma() {};
-
-
-
 };
 
 
