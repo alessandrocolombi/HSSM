@@ -1261,10 +1261,6 @@ BO_MomEst = function(n_j,
                 "lambda" = res$x$lambda,
                 "error"  = res$y,
                 "best.seen" = best.seen)
-  result = list("gamma1" = res$x$gamma1,
-                "gamma2" = res$x$gamma2,
-                "lambda" = res$x$lambda,
-                "error"  = res$y)
   return(result)
 
   # # retrieving and plotting results
