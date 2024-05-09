@@ -50,6 +50,7 @@ struct GS_data
 
     // auxiliary options
     unsigned int M_max;
+    bool dependentPrior;
 };
 
 struct return_obj

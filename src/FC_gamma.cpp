@@ -3,16 +3,23 @@
 FC_gamma::FC_gamma(std::string _na, bool _keepfixed) : FullConditional(_na,_keepfixed) {};
 
 
-double FC_gamma::log_full_gamma_j(double gammaj, double Lambda, double a_gamma, double b_gammaj, double logV, const VecUnsCol& n_jk )
+double FC_gamma::log_full_gamma_j(double gammaj, double Lambda, 
+                                  double a_gamma, double b_gammaj, 
+                                  double logV, const VecUnsCol& n_jk, 
+                                  bool dependentPrior )
 {
   double temp{0.0};
   for(unsigned int k = 0; k < n_jk.size(); k++){
     //Rcpp::Rcout<<"n_jk("<<k<<") = "<<n_jk(k)<<std::endl;
     temp += log_raising_factorial(n_jk(k), gammaj);
   }
-  double res = (a_gamma - 1.0)*std::log(gammaj) - Lambda*b_gammaj*gammaj + logV + temp;
-  //Rcpp::Rcout<<"Prior contribution: "<<(a_gamma - 1.0)*std::log(gammaj) - Lambda*b_gammaj*gammaj<<std::endl;
-  //Rcpp::Rcout<<"Data  contribution: "<<"logV = "<<logV<<"; log_Pochh = "<<temp<<std::endl;
+  //double res = (a_gamma - 1.0)*std::log(gammaj) - Lambda*b_gammaj*gammaj + logV + temp;
+  double res = (a_gamma - 1.0)*std::log(gammaj) + logV + temp;
+  if(dependentPrior)
+    res -= Lambda*b_gammaj*gammaj;
+  else
+    res -= b_gammaj*gammaj;
+
   return res;
 }
 
@@ -38,8 +45,8 @@ void FC_gamma::update(GS_data & gs_data, const sample::GSL_RNG & gs_engine)
     gamma_prime_j[j] = gammaj_prime;
     double logVprime = compute_log_Vprior(gs_data.Kobs, gs_data.n_j, gamma_prime_j, qM, gs_data.M_max);
     // Accept or reject it
-    double log_acc = log_full_gamma_j( gammaj_prime, gs_data.Lambda, gs_data.a_gamma, gs_data.b_gamma[j], logVprime,    gs_data.N_jk.row(j) ) -
-                     log_full_gamma_j( gammaj_old,   gs_data.Lambda, gs_data.a_gamma, gs_data.b_gamma[j], gs_data.logV, gs_data.N_jk.row(j) ) +
+    double log_acc = log_full_gamma_j( gammaj_prime, gs_data.Lambda, gs_data.a_gamma, gs_data.b_gamma[j], logVprime,    gs_data.N_jk.row(j), gs_data.dependentPrior ) -
+                     log_full_gamma_j( gammaj_old,   gs_data.Lambda, gs_data.a_gamma, gs_data.b_gamma[j], gs_data.logV, gs_data.N_jk.row(j), gs_data.dependentPrior ) +
                      log_gammaj_prime - std::log(gammaj_old);
     double acc = std::exp(log_acc);
     double u_acc = runif(gs_engine);

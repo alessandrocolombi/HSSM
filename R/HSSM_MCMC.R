@@ -9,7 +9,8 @@ set_options_sampler = function( X_j = NULL,
                                 sigma2_beta = 100, adapt_var_gamma_j = c(1,1),
                                 adapt_var_Lambda = 1,
                                 adapt_var_beta = 1,
-                                M_max = 1000, seed = 12345,
+                                dependentPrior = TRUE,
+                                M_max = 100, seed = 12345,
                                 gamma_guess = 1 )
 {
   d = length(gamma0)
@@ -39,7 +40,7 @@ set_options_sampler = function( X_j = NULL,
               "sigma2_beta" = sigma2_beta, "adapt_var_gamma_j" = adapt_var_gamma_j,
               "adapt_var_beta" = adapt_var_beta, "adapt_var_Lambda" = adapt_var_Lambda,
               "a_gamma" = a_gamma, "b_gamma" = b_gamma,
-              "M_max" = M_max, "seed" = seed)
+              "M_max" = M_max, "seed" = seed,"dependentPrior" = dependentPrior)
   return(res)
 }
 
@@ -49,10 +50,11 @@ set_options_sampler = function( X_j = NULL,
 set_options_MCMC = function( gamma0 = c(1,1), Lambda0 = 10,
                              UpdateLambda = TRUE, UpdateGamma = TRUE,
                              L0 = 100, V_Lambda = 100,
-                             a_gamma = 1, b_gamma = 1,
+                             a_gamma = 1, b_gamma = c(1,1),
                              adapt_var_gamma_j = c(1,1),
                              adapt_var_Lambda = 1,
-                             M_max = 1000, seed = 12345,
+                             dependentPrior = FALSE,
+                             M_max = 100, seed = 12345,
                              gamma_guess = 1 )
 {
   d = length(gamma0)
@@ -73,7 +75,7 @@ set_options_MCMC = function( gamma0 = c(1,1), Lambda0 = 10,
               "sigma2_beta" = 1, "adapt_var_gamma_j" = adapt_var_gamma_j,
               "adapt_var_beta" = 1, "adapt_var_Lambda" = adapt_var_Lambda,
               "a_gamma" = a_gamma, "b_gamma" = b_gamma,
-              "M_max" = M_max, "seed" = seed)
+              "M_max" = M_max, "seed" = seed, "dependentPrior" = dependentPrior)
   return(res)
 }
 

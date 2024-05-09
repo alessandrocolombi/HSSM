@@ -15,7 +15,7 @@ protected:
     //double log_full_gamma(double x, double Lambda, unsigned int k, unsigned int M_star, const GDFMM_Traits::MatUnsCol & n_jk);
     //double sumlgamma(double x, const GDFMM_Traits::MatUnsCol& n_jk);
     //double l_dgamma(double gamma, double a, double b);
-    double log_full_gamma_j(double gammaj, double Lambda, double a_gamma, double b_gammaj, double logV, const VecUnsCol& n_jk );
+    double log_full_gamma_j(double gammaj, double Lambda, double a_gamma, double b_gammaj, double logV, const VecUnsCol& n_jk, bool dependentPrior );
 
 public:
 

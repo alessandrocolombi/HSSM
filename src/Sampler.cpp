@@ -123,7 +123,7 @@ Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eige
   gs_data.adapt_var_gamma_j = Rcpp::as<std::vector<double>>(option["adapt_var_gamma_j"]);
   gs_data.adapt_var_Lambda = Rcpp::as<double>(option["adapt_var_Lambda"]);
   gs_data.adapt_var_beta = Rcpp::as<double>(option["adapt_var_beta"]);
-
+  gs_data.dependentPrior   = !Rcpp::as<bool>(option["dependentPrior"]);
 
 
   Sampler sampler(gs_data, Rcpp::as<unsigned int>(option["seed"]));
