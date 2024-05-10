@@ -1154,7 +1154,7 @@ BO_MomEst = function(n_j,
                      lambda_LB, lambda_UB,
                      BO_iterations = 50,
                      Max_iter = 100,
-                     p = 2, pesi= c(0.25,0.25,0.25,0.25) )
+                     perr = 2, pesi= c(0.25,0.25,0.25,0.25) )
 {
   library(mlrMBO)
   obj.fun <- makeSingleObjectiveFunction(
@@ -1216,11 +1216,11 @@ BO_MomEst = function(n_j,
                  (ExpK1-K1)/K1,
                  (ExpK2-K2)/K2 )
       err = Inf
-      if(p == 1)
+      if(perr == 1)
         err = sum( abs(pesi*v_err) )
-      if(p == 2)
+      if(perr == 2)
         err = sum( (pesi*v_err)^2   )
-      if(p == Inf)
+      if(perr == Inf)
         err = max( abs(pesi*v_err)  )
 
       # err = ((ExpK-K12)^2 + (ExpS-S12)^2)/2
@@ -1283,15 +1283,15 @@ BO_MomEst_multiple = function(n_j_list,v_K12,v_S12,
                               lambda_LB, lambda_UB,
                               BO_iterations = 100,
                               Max_iter = 100,
-                              p = 2, c1 = 0.5, c2 = 0.5)
+                              perr = 2, c1 = 0.5, c2 = 0.5)
 {
   L = length(n_j_list)
   if(length(v_K12)!=L)
     stop("length of v_K12 is not the same as n_j_list")
   if(length(v_S12)!=L)
     stop("length of v_S12 is not the same as n_j_list")
-  if(p != 2 & p != 1 & p != Inf)
-    stop("p can only be 1,2,Inf")
+  if(perr != 2 & perr != 1 & perr != Inf)
+    stop("perr can only be 1,2,Inf")
   if((c1+c2) != 1)
     stop("c1 and c2 must sum up to 1")
 
