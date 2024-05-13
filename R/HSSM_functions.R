@@ -1211,10 +1211,10 @@ BO_MomEst = function(n_j,
       qK = quantile(xK, probs = c(0.025,0.975))
       ExpK2 = mean( xK )
 
-      v_err = c( (ExpK-K12)/K12,
-                 (ExpS-S12)/S12,
-                 (ExpK1-K1)/K1,
-                 (ExpK2-K2)/K2 )
+      v_err = c( (ExpK-K12),
+                 (ExpS-S12),
+                 (ExpK1-K1),
+                 (ExpK2-K2) )
       err = Inf
       if(perr == 1)
         err = sum( abs(pesi*v_err) )
@@ -1335,8 +1335,8 @@ BO_MomEst_multiple = function(n_j_list,v_K12,v_S12,
           v_ExpK[it] = mean( sample(Kmin_it:Kmax_it, size = 10000,replace = TRUE, prob = marginals$K[(Kmin_it:Kmax_it)]) )
           v_ExpS[it] = mean( sample(Smin_it:Smax_it, size = 10000,replace = TRUE, prob = marginals$S[(Smin_it:Smax_it)+1]) )
         }
-        v_errK[it] = (v_ExpK[it]-K12_it)/K12_it
-        v_errS[it] = (v_ExpS[it]-S12_it)/S12_it
+        v_errK[it] = (v_ExpK[it]-K12_it)
+        v_errS[it] = (v_ExpS[it]-S12_it)
         # v_err[it] = abs(v_ExpK[it]-K12_it)/K12_it + abs(v_ExpS[it]-S12_it)/S12_it
       }
       cat("\n v_ExpK = ")
@@ -1464,10 +1464,10 @@ BO_MomEst_NB = function(n_j,
       qK = quantile(xK, probs = c(0.025,0.975))
       ExpK2 = mean( xK )
 
-      v_err = c( (ExpK-K12)/K12,
-                 (ExpS-S12)/S12,
-                 (ExpK1-K1)/K1,
-                 (ExpK2-K2)/K2 )
+      v_err = c( (ExpK-K12),
+                 (ExpS-S12),
+                 (ExpK1-K1),
+                 (ExpK2-K2) )
       err = Inf
       if(perr == 1)
         err = sum( abs(pesi*v_err) )
@@ -1583,8 +1583,8 @@ BO_MomEst_multiple_NB = function(n_j_list,v_K12,v_S12,
           v_ExpK[it] = mean( sample(Kmin_it:Kmax_it, size = 10000,replace = TRUE, prob = marginals$K[(Kmin_it:Kmax_it)]) )
           v_ExpS[it] = mean( sample(Smin_it:Smax_it, size = 10000,replace = TRUE, prob = marginals$S[(Smin_it:Smax_it)+1]) )
         }
-        v_errK[it] = (v_ExpK[it]-K12_it)/K12_it
-        v_errS[it] = (v_ExpS[it]-S12_it)/S12_it
+        v_errK[it] = (v_ExpK[it]-K12_it)
+        v_errS[it] = (v_ExpS[it]-S12_it)
         # v_err[it] = abs(v_ExpK[it]-K12_it)/K12_it + abs(v_ExpS[it]-S12_it)/S12_it
       }
       cat("\n v_ExpK = ")
