@@ -18,7 +18,7 @@ BO_MomEst_multiple(
   lambda_UB,
   BO_iterations = 100,
   Max_iter = 100,
-  p = 2,
+  perr = 2,
   c1 = 0.5,
   c2 = 0.5
 )

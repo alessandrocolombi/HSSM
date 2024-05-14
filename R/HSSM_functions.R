@@ -728,7 +728,7 @@ D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 1
 #' Compute posterior distribution
 #' @export
 D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100,
-                                     Kmin, Kmax, Smin, Smax,
+                                     Kmin, Kmax, 
                                      logVpost_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -737,7 +737,7 @@ D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ...,
   m = sum(m_j)
 
   if(is.null(logVpost_vec)){
-    logVpost_vec = rep(-Inf, n+1)
+    logVpost_vec = rep(-Inf, Kmax-Kmin+1)
   }
 
   #checks
@@ -753,8 +753,8 @@ D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ...,
     stop("The starting value for K must be >= 0")
   if(Kmax>m)
     stop("The maximum value for K must be <= m")
-  if(length(logVpost_vec)!=(m+1))
-    stop("Length of logVpost_vec must be equal to n+1. logVpost_vec=NULL is a valid option.")
+  if(length(logVpost_vec) < (m+1))
+    stop("Length of logVpost_vec must be equal to m+1 (or Kmax-Kmin+1). logVpost_vec=NULL is a valid option.")
 
   # read prior parameters
   prior_params = list("lambda" = -1, "r" = -1, "p" = -1)

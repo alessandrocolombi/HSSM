@@ -15,8 +15,8 @@ set_options_MCMC(
   b_gamma = c(1, 1),
   adapt_var_gamma_j = c(1, 1),
   adapt_var_Lambda = 1,
-  dependentPrior = TRUE,
-  M_max = 1000,
+  dependentPrior = FALSE,
+  M_max = 100,
   seed = 12345,
   gamma_guess = 1
 )

@@ -20,7 +20,7 @@ BO_MomEst(
   lambda_UB,
   BO_iterations = 50,
   Max_iter = 100,
-  p = 2,
+  perr = 2,
   pesi = c(0.25, 0.25, 0.25, 0.25)
 )
 }

@@ -19,8 +19,8 @@ set_options_sampler(
   adapt_var_gamma_j = c(1, 1),
   adapt_var_Lambda = 1,
   adapt_var_beta = 1,
-  dependentPrior = FALSE,
-  M_max = 1000,
+  dependentPrior = TRUE,
+  M_max = 100,
   seed = 12345,
   gamma_guess = 1
 )
