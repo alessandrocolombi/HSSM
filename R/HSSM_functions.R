@@ -753,7 +753,7 @@ D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ...,
     stop("The starting value for K must be >= 0")
   if(Kmax>m)
     stop("The maximum value for K must be <= m")
-  if(length(logVpost_vec) < (m+1))
+  if(length(logVpost_vec) > (m+1))
     stop("Length of logVpost_vec must be equal to m+1 (or Kmax-Kmin+1). logVpost_vec=NULL is a valid option.")
 
   # read prior parameters
