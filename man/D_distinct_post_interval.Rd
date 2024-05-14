@@ -14,8 +14,6 @@ D_distinct_post_interval(
   Max_iter = 100,
   Kmin,
   Kmax,
-  Smin,
-  Smax,
   logVpost_vec = NULL,
   print = TRUE
 )
