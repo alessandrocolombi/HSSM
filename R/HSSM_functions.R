@@ -737,7 +737,7 @@ D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ...,
   m = sum(m_j)
 
   if(is.null(logVpost_vec)){
-    logVpost_vec = rep(-Inf, Kmax-Kmin+1)
+    logVpost_vec = rep(-Inf, m+1)
   }
 
   #checks

@@ -3659,6 +3659,7 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 		double log_V1post{0.0};
 		double cumulated1{0.0};
 		Progress progress_bar1(n, TRUE); // Initialize progress bar
+
 		for(unsigned int r=Kmin; r<=Kmax; ++r){
 			if(print)
 				Rcpp::Rcout<<"r = "<<r<<" ... ";
@@ -3669,7 +3670,7 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 			// get V number
 			log_V1post = logVpost_vec[r];
 
-			res[k] = std::exp(log_V1post + absC[r]);
+			res[r] = std::exp(log_V1post + absC[r]);
 			cumulated1 += res[r];
 			if(print){
 				Rcpp::Rcout<<"done!"<<std::endl;
