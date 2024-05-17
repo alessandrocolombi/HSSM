@@ -1048,7 +1048,8 @@ NegBin_parametrization = function(mean,variance)
 #' Train-Test dataset
 #'
 #' @export
-Ants_train_test = function(counts_long_all,n_j_all,d = 2,keep = 0.5,seed = 1234)
+Ants_train_test = function( counts_long_all,n_j_all,counts_all,
+                            d = 2,keep = 0.5,seed = 1234 )
 {
   # initialize long list with repeated labels
   species_long_all = lapply(1:d, function(x){c()})
@@ -1154,7 +1155,7 @@ BO_MomEst = function(n_j,
                      lambda_LB, lambda_UB,
                      BO_iterations = 50,
                      Max_iter = 100,
-                     perr = 2, pesi= c(0.25,0.25,0.25,0.25) )
+                     perr = 2, pesi= c(0.25,0.25,0.25,0.25), normalize = FALSE )
 {
   library(mlrMBO)
   obj.fun <- makeSingleObjectiveFunction(
@@ -1215,6 +1216,15 @@ BO_MomEst = function(n_j,
                  (ExpS-S12),
                  (ExpK1-K1),
                  (ExpK2-K2) )
+      if(normalize){
+        v_err[1] = v_err[1]/K12
+        v_err[3] = v_err[3]/K1
+        v_err[4] = v_err[4]/K2
+        if(S12 > 0)
+          v_err[2] = v_err[2]/S12
+      }
+
+
       err = Inf
       if(perr == 1)
         err = sum( abs(pesi*v_err) )
@@ -1228,6 +1238,7 @@ BO_MomEst = function(n_j,
 
       cat("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
       cat("\n ExpK1 = ",ExpK1,"; ExpK2 = ",ExpK2,"\n")
+      
       return( err )
     },
 
@@ -1337,6 +1348,12 @@ BO_MomEst_multiple = function(n_j_list,v_K12,v_S12,
         }
         v_errK[it] = (v_ExpK[it]-K12_it)
         v_errS[it] = (v_ExpS[it]-S12_it)
+
+        if(normalize){
+          v_errK[it] = v_errK[it]/K12_it
+          if(S12_it > 0)
+            v_errS[it] = v_errS[it]/S12_it
+        }
         # v_err[it] = abs(v_ExpK[it]-K12_it)/K12_it + abs(v_ExpS[it]-S12_it)/S12_it
       }
       cat("\n v_ExpK = ")
@@ -1468,6 +1485,14 @@ BO_MomEst_NB = function(n_j,
                  (ExpS-S12),
                  (ExpK1-K1),
                  (ExpK2-K2) )
+      if(normalize){
+        v_err[1] = v_err[1]/K12
+        v_err[3] = v_err[3]/K1
+        v_err[4] = v_err[4]/K2
+        if(S12 > 0)
+          v_err[2] = v_err[2]/S12
+      }
+
       err = Inf
       if(perr == 1)
         err = sum( abs(pesi*v_err) )
@@ -1586,6 +1611,11 @@ BO_MomEst_multiple_NB = function(n_j_list,v_K12,v_S12,
         v_errK[it] = (v_ExpK[it]-K12_it)
         v_errS[it] = (v_ExpS[it]-S12_it)
         # v_err[it] = abs(v_ExpK[it]-K12_it)/K12_it + abs(v_ExpS[it]-S12_it)/S12_it
+        if(normalize){
+          v_errK[it] = v_errK[it]/K12_it
+          if(S12_it > 0)
+            v_errS[it] = v_errS[it]/S12_it
+        }
       }
       cat("\n v_ExpK = ")
       print(v_ExpK)
