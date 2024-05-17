@@ -35,7 +35,7 @@ struct GS_data
 
     // gamma_j hyperparam
     double sigma2;
-    double a_gamma;
+    std::vector<double> a_gamma;
     std::vector<double> b_gamma;
     // gamma_j options
     std::vector<double> adapt_var_gamma_j;

@@ -116,7 +116,7 @@ Rcpp::List MCMC_Sampler_c(const Eigen::Matrix<unsigned int, Eigen::Dynamic, Eige
   gs_data.Lambda0     = Rcpp::as<double>(option["L0"]);
   gs_data.V_Lambda    = Rcpp::as<double>(option["V_Lambda"]);
   gs_data.sigma2      = Rcpp::as<double>(option["sigma2"]);
-  gs_data.a_gamma     = Rcpp::as<double>(option["a_gamma"]);
+  gs_data.a_gamma     = Rcpp::as<std::vector<double>>(option["a_gamma"]);
   gs_data.b_gamma     = Rcpp::as<std::vector<double>>(option["b_gamma"]);
   gs_data.sigma2_beta = Rcpp::as<double>(option["sigma2_beta"]);
   // MCMC options

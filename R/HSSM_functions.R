@@ -728,7 +728,7 @@ D_joint_prior_square = function(n_j, gamma, prior = "Poisson", ..., Max_iter = 1
 #' Compute posterior distribution
 #' @export
 D_distinct_post_interval = function( m_j, n_j, k, gamma, prior = "Poisson", ..., Max_iter = 100,
-                                     Kmin, Kmax, 
+                                     Kmin, Kmax,
                                      logVpost_vec = NULL, print = TRUE)
 {
   l = list(...)
@@ -1048,7 +1048,7 @@ NegBin_parametrization = function(mean,variance)
 #' Train-Test dataset
 #'
 #' @export
-Ants_train_test = function(counts_long_all,d = 2,keep = 0.5,seed = 1234)
+Ants_train_test = function(counts_long_all,n_j_all,d = 2,keep = 0.5,seed = 1234)
 {
   # initialize long list with repeated labels
   species_long_all = lapply(1:d, function(x){c()})

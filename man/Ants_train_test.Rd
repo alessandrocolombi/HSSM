@@ -4,7 +4,7 @@
 \alias{Ants_train_test}
 \title{Train-Test dataset}
 \usage{
-Ants_train_test(counts_long_all, d = 2, keep = 0.5, seed = 1234)
+Ants_train_test(counts_long_all, n_j_all, d = 2, keep = 0.5, seed = 1234)
 }
 \description{
 Train-Test dataset

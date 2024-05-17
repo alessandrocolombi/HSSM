@@ -2945,7 +2945,12 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 		// Cycle for each k in Ksearch
 		double log_V1{0.0};
 		double cumulated1{0.0};
-		Progress progress_bar1(n, TRUE); // Initialize progress bar
+		
+			/*
+				// Remove progress bar
+				Progress progress_bar1(n, TRUE); // Initialize progress bar
+			*/
+
 		for(unsigned int k=Kmin; k<=Kmax; ++k){
 			if(print)
 				Rcpp::Rcout<<"k = "<<k<<" ... ";
@@ -2970,9 +2975,12 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 			    //Print error and return
 			    throw std::runtime_error("Execution stopped by the user");
 			}
-			if(print)
-				progress_bar1.increment(); //update progress bar
 
+					/*
+						// Remove progress bar
+						if(print)
+							progress_bar1.increment(); //update progress bar
+					*/
 			if( 1.0 - cumulated1 < 1e-10 )
 				break;
 		}
@@ -2994,7 +3002,10 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 		double log_V{0.0};
 		double log_K{0.0};
 		double cumulated{0.0};
-		Progress progress_bar(n, TRUE); // Initialize progress bar
+				/*
+					// Remove progress bar
+					Progress progress_bar(n, TRUE); // Initialize progress bar
+				*/
 		for(unsigned int k=Kmin; k<=Kmax; ++k){
 			if(print)
 				Rcpp::Rcout<<"k = "<<k<<" ... ";
@@ -3021,9 +3032,11 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 			    //Print error and return
 			    throw std::runtime_error("Execution stopped by the user");
 			}
-			if(print)
-				progress_bar.increment(); //update progress bar
-
+					/*
+						// Remove progress bar
+						if(print)
+							progress_bar.increment(); //update progress bar
+					*/
 			if( 1.0 - cumulated < 1e-10 )
 				break;
 		}
@@ -3493,7 +3506,12 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 	double log_SK{0.0};
 	double joint_cumulated{0.0};
 	unsigned int nelem_max = (Kmax-Kmin)*(Smax-Smin);
-	Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
+
+			/*
+				// Remove progress bar
+				Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
+			*/
+
 	for(unsigned int k=Kmin; k<=Kmax; ++k){
 		// compute V number if never computed before
 		if(logV_vec[k] == -inf)
@@ -3524,7 +3542,11 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 		    //Print error and return
 		    throw std::runtime_error("Execution stopped by the user");
 		}
-		progress_bar.increment(); //update progress bar
+				/*
+					// Remove progress bar
+					if(print)
+						progress_bar.increment(); //update progress bar
+				*/
 		if( 1.0 - joint_cumulated < 1e-4 )
 			break;
 	}
@@ -3576,7 +3598,12 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	double log_SKpost{0.0};
 	double joint_cumulated{0.0};
 	unsigned int nelem_max = (Kmax-Kmin)*(Kmax-Kmin);
-	Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
+		
+			/*
+				// Remove progress bar
+				Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
+			*/
+
 	for(unsigned int r=Kmin; r<=Kmax; ++r){
 		// compute V number if never computed before
 		if(logVpost_vec[r] == -inf)
@@ -3614,8 +3641,12 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 		    //Print error and return
 		    throw std::runtime_error("Execution stopped by the user");
 		}
-		if(print)
-			progress_bar.increment(); //update progress bar
+
+				/*
+					// Remove progress bar
+					if(print)
+						progress_bar.increment(); //update progress bar
+				*/
 
 		if( 1.0 - joint_cumulated < 1e-4 )
 			break;
@@ -3658,7 +3689,11 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 		// Cycle for each r in Ksearch
 		double log_V1post{0.0};
 		double cumulated1{0.0};
-		Progress progress_bar1(n, TRUE); // Initialize progress bar
+
+				/*
+					// Remove progress bar
+					Progress progress_bar1(n, TRUE); // Initialize progress bar
+				*/
 
 		for(unsigned int r=Kmin; r<=Kmax; ++r){
 			if(print)
@@ -3684,9 +3719,11 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 			    //Print error and return
 			    throw std::runtime_error("Execution stopped by the user");
 			}
-			if(print)
-				progress_bar1.increment(); //update progress bar
-
+					/*
+						// Remove progress bar
+						if(print)
+							progress_bar1.increment(); //update progress bar
+					*/
 			if( 1.0 - cumulated1 < 1e-10 )
 				break;
 		}
@@ -3708,7 +3745,12 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 		double log_Vpost{0.0};
 		double log_Kpost{0.0};
 		double cumulated{0.0};
-		Progress progress_bar(n, TRUE); // Initialize progress bar
+
+				/*
+					// Remove progress bar
+					Progress progress_bar(n, TRUE); // Initialize progress bar
+				*/
+		
 		for(unsigned int r=Kmin; r<=Kmax; ++r){
 			if(print)
 				Rcpp::Rcout<<"r = "<<r<<" ... ";
@@ -3736,9 +3778,13 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 			    //Print error and return
 			    throw std::runtime_error("Execution stopped by the user");
 			}
-			if(print)
-				progress_bar.increment(); //update progress bar
 
+					/*
+						// Remove progress bar
+						if(print)
+							progress_bar.increment(); //update progress bar
+					*/
+			
 			if( 1.0 - cumulated < 1e-10 )
 				break;
 		}

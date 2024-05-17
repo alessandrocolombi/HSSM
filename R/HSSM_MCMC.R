@@ -15,7 +15,7 @@ set_options_sampler = function( X_j = NULL,
 {
   d = length(gamma0)
   sigma2 = (d*V_Lambda)/(L0*L0)
-  a_gamma = 1/sigma2
+  a_gamma = c(1/sigma2,1/sigma2)
 
   if(use_covariates){
     if(is.null(X_j))
@@ -50,7 +50,7 @@ set_options_sampler = function( X_j = NULL,
 set_options_MCMC = function( gamma0 = c(1,1), Lambda0 = 10,
                              UpdateLambda = TRUE, UpdateGamma = TRUE,
                              L0 = 100, V_Lambda = 100,
-                             a_gamma = 1, b_gamma = c(1,1),
+                             a_gamma = c(1,1), b_gamma = c(1,1),
                              adapt_var_gamma_j = c(1,1),
                              adapt_var_Lambda = 1,
                              dependentPrior = FALSE,

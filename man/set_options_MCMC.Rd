@@ -11,7 +11,7 @@ set_options_MCMC(
   UpdateGamma = TRUE,
   L0 = 100,
   V_Lambda = 100,
-  a_gamma = 1,
+  a_gamma = c(1, 1),
   b_gamma = c(1, 1),
   adapt_var_gamma_j = c(1, 1),
   adapt_var_Lambda = 1,
