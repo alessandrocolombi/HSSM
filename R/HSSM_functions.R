@@ -1707,7 +1707,7 @@ Rarefaction_curves = function(data, Nsort = 2, seed0 = 220424 ){
 
   set.seed(seed0)
   seeds = sample(1:99999,size = Nsort,replace = TRUE)
-  K12obs_n <- K1obs_n <- K2obs_n <- S12obs_n <- lapply(1:Nsort,function(x){c()})
+  K12obs_n <- K1obs_n <- K2obs_n <- S12obs_n <- matrix(0,n,Nsort)#lapply(1:Nsort,function(x){c()})
 
   for(it in 1:Nsort){
     cat("\n it = ",it,"\n")
@@ -1740,27 +1740,36 @@ Rarefaction_curves = function(data, Nsort = 2, seed0 = 220424 ){
 
       species_ordered_n[which(species_ordered_n$species == temp$species),j+1] = species_ordered_n[which(species_ordered_n$species == temp$species),j+1] + 1
 
-      K12obs_n[[it]] = c(K12obs_n[[it]],nrow(species_ordered_n[apply(species_ordered_n[,-1],1,sum)>0,]))
-      K1obs_n[[it]]  = c(K1obs_n[[it]],length(which(species_ordered_n[,2]>0)))
-      K2obs_n[[it]]  = c(K2obs_n[[it]],length(which(species_ordered_n[,3]>0)))
+      K12obs_n[i,it]  = nrow(species_ordered_n[apply(species_ordered_n[,-1],1,sum)>0,])
+      K1obs_n[i,it]   = length(which(species_ordered_n[,2]>0))
+      K2obs_n[i,it]   = length(which(species_ordered_n[,3]>0))
+      #K12obs_n[[it]] = c(K12obs_n[[it]],nrow(species_ordered_n[apply(species_ordered_n[,-1],1,sum)>0,]))
+      #K1obs_n[[it]]  = c(K1obs_n[[it]],length(which(species_ordered_n[,2]>0)))
+      #K2obs_n[[it]]  = c(K2obs_n[[it]],length(which(species_ordered_n[,3]>0)))
       setTxtProgressBar(pb,i)
     }
     close(pb)
-    S12obs_n[[it]] = K1obs_n[[it]] + K2obs_n[[it]] - K12obs_n[[it]]
+    S12obs_n[,it]  = K1obs_n[,it] + K2obs_n[,it] - K12obs_n[,it]
+    # S12obs_n[[it]] = K1obs_n[[it]] + K2obs_n[[it]] - K12obs_n[[it]]
   }
 
 
-
-  K12obs_mean = add(K12obs_n)/Nsort
-  K1obs_mean = add(K1obs_n)/Nsort
-  K2obs_mean = add(K2obs_n)/Nsort
-  S12obs_mean = add(S12obs_n)/Nsort
+  K12obs_summary = apply( K12obs_n,1,quantile, probs = c(0.025,0.5,0.975) )
+  S12obs_summary = apply( S12obs_n,1,quantile, probs = c(0.025,0.5,0.975) )
+  K12obs_mean    = apply( K12obs_n,1,mean )
+  S12obs_mean    = apply( S12obs_n,1,mean )
+  # K12obs_mean = add(K12obs_n)/Nsort
+  # K1obs_mean = add(K1obs_n)/Nsort
+  # K2obs_mean = add(K2obs_n)/Nsort
+  # S12obs_mean = add(S12obs_n)/Nsort
 
   ## plot
 
   ## return
   res = list("K12obs_mean"  = K12obs_mean,
-             "S12obs_mean" = S12obs_mean)
+             "S12obs_mean" = S12obs_mean,
+             "K12obs_summary" = K12obs_summary,
+             "S12obs_summary" = S12obs_summary )
   return(res)
 }
 
@@ -1792,7 +1801,7 @@ Rarefaction_curve_d1 = function(data, Nsort = 50, seed0 = 220424 ){
 
   set.seed(seed0)
   seeds = sample(1:99999,size = Nsort,replace = TRUE)
-  Kobs_n = lapply(1:Nsort,function(x){c()})
+  Kobs_n = matrix(0,n,Nsort) #lapply(1:Nsort,function(x){c()})
 
   for(it in 1:Nsort){
     cat("\n it = ",it,"\n")
@@ -1807,15 +1816,20 @@ Rarefaction_curve_d1 = function(data, Nsort = 50, seed0 = 220424 ){
       x = X_reordered[i]
       species_ordered_n[which(species_ordered_n$species == x),2] = species_ordered_n[which(species_ordered_n$species == x),2] + 1
 
-      Kobs_n[[it]]  = c(Kobs_n[[it]],length(which(species_ordered_n[,2]>0)))
+      Kobs_n[i,it]  = length(which(species_ordered_n[,2]>0))
+      # Kobs_n[[it]]  = c(Kobs_n[[it]],length(which(species_ordered_n[,2]>0)))
       setTxtProgressBar(pb,i)
     }
     close(pb)
   }
 
   ## return
-  Kobs_mean = add(Kobs_n)/Nsort
-  return(Kobs_mean)
+  Kobs_summary = apply( Kobs_n,1,quantile, probs = c(0.025,0.5,0.975) )
+  Kobs_mean    = apply( Kobs_n,1,mean )
+  res = list( "Kobs_mean"  = Kobs_mean,
+              "Kobs_summary" = Kobs_summary )
+  # Kobs_mean = add(Kobs_n)/Nsort
+  return(res)
 }
 
 
