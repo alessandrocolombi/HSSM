@@ -1155,7 +1155,7 @@ BO_MomEst = function(n_j,
                      lambda_LB, lambda_UB,
                      BO_iterations = 50,
                      Max_iter = 100,
-                     perr = 2, pesi= c(0.25,0.25,0.25,0.25), normalize = FALSE )
+                     perr = 2, pesi= c(0,1/3,1/3,1/3), normalize = FALSE )
 {
   library(mlrMBO)
   obj.fun <- makeSingleObjectiveFunction(
@@ -1167,20 +1167,21 @@ BO_MomEst = function(n_j,
       prior = "Poisson"
 
       ## Global quantities
+      Kmax12 = min(Kmax,sum(n_j))
+      Smax12 = min(Smax,sum(n_j))
       SK_joint = D_joint_prior_square(n_j = n_j, gamma = gamma_j,
                                       prior = prior, lambda = lambda,
                                       Max_iter = Max_iter,
-                                      Kmin = Kmin, Kmax = Kmax,
-                                      Smin = Smin, Smax = Smax,
+                                      Kmin = Kmin, Kmax = Kmax12,
+                                      Smin = Smin, Smax = Smax12,
                                       logV_vec = NULL, print = FALSE)
-
       marginals = vector("list",2)
       names(marginals) = c("K","S")
       marginals$S = apply(SK_joint,1,sum)
       marginals$K = apply(SK_joint,2,sum)
 
-      ExpK = mean( sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax)]) )
-      ExpS = mean( sample(Smin:Smax, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Smax)+1]) )
+      ExpK = mean( sample(Kmin:Kmax12, size = 10000,replace = TRUE, prob = marginals$K[(Kmin:Kmax12)]) )
+      ExpS = mean( sample(Smin:Kmax12, size = 10000,replace = TRUE, prob = marginals$S[(Smin:Kmax12)+1]) )
 
       check = sapply(marginals,sum)
       if( check[1]<0.99 || check[2]<0.99 ){
@@ -1191,24 +1192,26 @@ BO_MomEst = function(n_j,
       }
 
       ## Local quantities
+      Kmax1 = min(Kmax,n_j[1])
       K_prior = D_distinct_prior_interval(n_j = n_j[1], gamma = gamma_j[1],
                                           prior = prior, lambda = lambda,
                                           Max_iter = 100,
-                                          Kmin = Kmin, Kmax = Kmax,
+                                          Kmin = Kmin, Kmax = Kmax1,
                                           logV_vec = NULL, print = FALSE)
 
-
-      xK = sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = K_prior[(Kmin:Kmax)])
+      xK = sample(Kmin:Kmax1, size = 10000,replace = TRUE, prob = K_prior[(Kmin:Kmax1)])
       qK = quantile(xK, probs = c(0.025,0.975))
       ExpK1 = mean( xK )
+
+
+      Kmax2 = min(Kmax,n_j[2])
       K_prior = D_distinct_prior_interval(n_j = n_j[2], gamma = gamma_j[2],
                                           prior = prior, lambda = lambda,
                                           Max_iter = 100,
-                                          Kmin = Kmin, Kmax = Kmax,
+                                          Kmin = Kmin, Kmax = Kmax2,
                                           logV_vec = NULL, print = FALSE)
 
-
-      xK = sample(Kmin:Kmax, size = 10000,replace = TRUE, prob = K_prior[(Kmin:Kmax)])
+      xK = sample(Kmin:Kmax2, size = 10000,replace = TRUE, prob = K_prior[(Kmin:Kmax2)])
       qK = quantile(xK, probs = c(0.025,0.975))
       ExpK2 = mean( xK )
 
@@ -1238,7 +1241,7 @@ BO_MomEst = function(n_j,
 
       cat("\n ExpK = ",ExpK,"; ExpS = ",ExpS,"\n")
       cat("\n ExpK1 = ",ExpK1,"; ExpK2 = ",ExpK2,"\n")
-      
+
       return( err )
     },
 
@@ -1837,3 +1840,80 @@ Rarefaction_curve_d1 = function(data, Nsort = 50, seed0 = 220424 ){
 
 
 
+
+
+
+#' Training and Testing
+#'
+#' @export
+Train_Test = function(data, keep = 0.5 , seed = 220424 ){
+
+  data = data[apply(data,1,sum)>0,]
+  d = ncol(data)
+  r = nrow(data)
+  n_j  = apply(data,2,sum)
+  n    = sum(n_j)
+
+
+  species_long_all = lapply(1:d, function(x){c()})
+  names(species_long_all) = c("A1","A2")
+
+  for(i in 1:r){
+    for(j in 1:d){
+      if(data[i,j] > 0){
+        counts = data[i,j] # get number of repetitions
+        species = i # get species name
+        site = names(species_long_all)[j] # get area
+
+        # repeat "species" for "counts" times and concatenate with past values in the same area
+        species_long_all[[site]] = c(species_long_all[[site]],
+                                     rep(as.character(species),counts))
+      }
+    }
+  }
+
+  set.seed(seed)
+  # K12obs_n <- K1obs_n <- K2obs_n <- S12obs_n <- matrix(0,n,Nsort)#lapply(1:Nsort,function(x){c()})
+
+
+  new_idx1 = sample(1:n_j[1],size = n_j[1], replace = F)
+  new_idx2 = sample(1:n_j[2],size = n_j[2], replace = F)
+  new_idx12 = sample(1:n,size = n, replace = F)
+  X1_reordered = species_long_all[[1]][new_idx1]
+  X2_reordered = species_long_all[[2]][new_idx2]
+  temp = tibble(species = c(X1_reordered,X2_reordered),
+                site    = c(rep(names(species_long_all)[1],n_j[1]),
+                            rep(names(species_long_all)[2],n_j[2]))
+  )
+  temp_reordered = temp[new_idx12,]
+
+  n_train = floor(keep * n)
+  res = list("data_training" = temp_reordered[1:n_train,],
+             "data_test" = temp_reordered[(n_train+1):(n),])
+
+  # Sintetizzo il train set
+  species = unique(res$data_training$species)
+  res_tr = tibble("site" = c("A1","A2"))
+  for(s in species){
+
+    nA1 = nrow(res$data_training[which(res$data_training$species == s & res$data_training$site == "A1"),])
+    nA2 = nrow(res$data_training[which(res$data_training$species == s & res$data_training$site == "A2"),])
+    res_tr = res_tr %>% cbind( tibble(col = c(nA1,nA2)) )
+    names(res_tr)[ncol(res_tr)] = s
+
+  }
+  # Sintetizzo il test set
+  species = unique(res$data_test$species)
+  res_te = tibble("site" = c("A1","A2"))
+  for(s in species){
+
+    nA1 = nrow(res$data_test[which(res$data_test$species == s & res$data_test$site == "A1"),])
+    nA2 = nrow(res$data_test[which(res$data_test$species == s & res$data_test$site == "A2"),])
+    res_te = res_te %>% cbind( tibble(col = c(nA1,nA2)) )
+    names(res_te)[ncol(res_te)] = s
+  }
+
+  res = list("data_training" = res_tr,
+             "data_test" = res_te)
+  return(res)
+}

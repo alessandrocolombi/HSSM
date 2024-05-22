@@ -21,7 +21,7 @@ BO_MomEst(
   BO_iterations = 50,
   Max_iter = 100,
   perr = 2,
-  pesi = c(0.25, 0.25, 0.25, 0.25),
+  pesi = c(0, 1/3, 1/3, 1/3),
   normalize = FALSE
 )
 }
