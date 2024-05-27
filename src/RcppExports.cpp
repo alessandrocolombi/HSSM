@@ -210,6 +210,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_Vpost_long
+Rcpp::List log_Vpost_long(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _HSSM_log_Vpost_long(SEXP rSEXP, SEXP kSEXP, SEXP m_iSEXP, SEXP n_iSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type m_i(m_iSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_i(n_iSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_Vpost_long(r, k, m_i, n_i, gamma, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // p_distinct_prior_c
 double p_distinct_prior_c(const unsigned int& k, const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
 RcppExport SEXP _HSSM_p_distinct_prior_c(SEXP kSEXP, SEXP n_jSEXP, SEXP gamma_jSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
@@ -588,6 +606,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_log_Vprior_apprx2", (DL_FUNC) &_HSSM_log_Vprior_apprx2, 7},
     {"_HSSM_log_Vprior_apprx3", (DL_FUNC) &_HSSM_log_Vprior_apprx3, 7},
     {"_HSSM_log_qM_post", (DL_FUNC) &_HSSM_log_qM_post, 8},
+    {"_HSSM_log_Vpost_long", (DL_FUNC) &_HSSM_log_Vpost_long, 8},
     {"_HSSM_p_distinct_prior_c", (DL_FUNC) &_HSSM_p_distinct_prior_c, 6},
     {"_HSSM_p_shared_prior_c", (DL_FUNC) &_HSSM_p_shared_prior_c, 6},
     {"_HSSM_p_joint_prior_c", (DL_FUNC) &_HSSM_p_joint_prior_c, 7},

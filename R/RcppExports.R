@@ -128,6 +128,14 @@ log_qM_post <- function(m, prior, prior_param, k, n_j, gamma_j, log_V, M_max) {
     .Call(`_HSSM_log_qM_post`, m, prior, prior_param, k, n_j, gamma_j, log_V, M_max)
 }
 
+#' All terms of V
+#'
+#' This function returns the log of all terms in Vpost, from m=0 up to M_max
+#' @export
+log_Vpost_long <- function(r, k, m_i, n_i, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_log_Vpost_long`, r, k, m_i, n_i, gamma, prior, prior_param, M_max)
+}
+
 #' 
 p_distinct_prior_c <- function(k, n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_p_distinct_prior_c`, k, n_j, gamma_j, prior, prior_param, M_max)

@@ -297,6 +297,16 @@ std::vector<double> D_log_qM_post(	const ComponentPrior& qM,
 std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
 									  const ComponentPrior& qM, unsigned int M_max = 100 );
 
+//' All terms of V
+//'
+//' This function returns the log of all terms in Vpost, from m=0 up to M_max
+//' @export
+// [[Rcpp::export]]
+Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, 
+						   const std::vector<unsigned int>& n_i, 
+						   const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,  
+						   unsigned int M_max );
+
 // r are the distinct species in the new sample of size m_i
 // k are the distinct species in the new sample of size n_i
 double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
