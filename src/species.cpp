@@ -1136,7 +1136,12 @@ double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& 
 	unsigned int outer_indx{0};
 	for(std::size_t r1=start1; r1 <= end1; ++r1){
 		// Compute a_r1 using its definition
-		log_a[outer_indx] = gsl_sf_lnchoose(k-r1,s) + my_log_falling_factorial(s,(double)(s+r1)) + absC1[s+r1] + absC2[k-r1] ;
+		log_a[outer_indx] = gsl_sf_lnchoose((int)end1-(int)start1,r1) +
+							gsl_sf_lnchoose((int)k,(int)s) + 
+							gsl_sf_lnfact((int)(s+r1)) + gsl_sf_lnfact((int)(k-r1)) - gsl_sf_lnfact((int)k) + 
+							absC1[s+r1] + absC2[k-r1] ;
+		// Formula forse sbagliata ma che funziona
+		//log_a[outer_indx] = gsl_sf_lnchoose(k-r1,s) + my_log_falling_factorial(s,(double)(s+r1)) + absC1[s+r1] + absC2[k-r1] ;
 
 		// Check if it is the new maximum of log_a
 	       if(log_a[outer_indx]>val_max1){
@@ -3606,8 +3611,8 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 					if(print)
 						progress_bar.increment(); //update progress bar
 				*/
-		if( 1.0 - joint_cumulated < 1e-4 )
-			break;
+		//if( 1.0 - joint_cumulated < 1e-4 )
+		//	break;
 	}
 	return res;
 }
