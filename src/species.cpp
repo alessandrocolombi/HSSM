@@ -735,7 +735,6 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 {
 	//V(0,0;0) = 1 --> log is 0
 	if(k == 0 && std::accumulate(n_i.cbegin(), n_i.cend(), 0) == 0){
-		Rcpp::Rcout<<"V(0,0;0) = 1"<<std::endl;
 		return 0.0;
 	}
 
@@ -843,7 +842,6 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		for(std::size_t r1=start1; r1 <= end1; ++r1){
 
 			// Compute a_r1 using its definition
-							//log_a[outer_indx] = gsl_sf_lnchoose(k,r1) - my_log_falling_factorial(r1,(double)k) + absC1[k-r1];  //<---- old version
 			log_a[outer_indx] =  absC1[k-r1];
 
 			// Prepare for computing the second term
@@ -857,11 +855,11 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 			double val_max2(log_vect_res[idx_max2]);
 
 			// Inner loop on r2
+			const unsigned int end2   = std::min( (int)(k-r1), (int)n_i[0] );     //min(k-r1,n1)
 			unsigned int inner_indx{0};
-			for(std::size_t r2=start2; r2<= k-r1; ++r2){
+			for(std::size_t r2=start2; r2<= end2; ++r2){
 
 				// Compute b_r2*c_r1r2
-							//log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r1,r2) + std::lgamma(k-r2+1) +  absC2[k-r2];   //<---- old version
 				log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2];
 
 				// Check if it is the new maximum of log_vect_res
@@ -945,7 +943,11 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		for(std::size_t r1=start1; r1 <= end1; ++r1){
 
 			// Compute a_r1 using its definition
-			log_a[outer_indx] =  absC1[k-r1];
+					// log_a[outer_indx] =  absC1[k-r1]; // <--- old version
+			log_a[outer_indx] = gsl_sf_lnfact((int)k- (int)r1) - 
+								gsl_sf_lnfact((int)k) + 
+								gsl_sf_lnchoose( (int)end1 - (int)start1, r1  ) + 
+								absC1[k-r1];
 
 			// Prepare for computing the second term
 			// Initialize vector of results
@@ -956,11 +958,15 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 			double val_max2(log_vect_res[idx_max2]);
 
 			// Inner loop on r2
+			const unsigned int end2   = std::min( (int)(k-r1), (int)n_i[0] );     //min(k-r1,n1)
 			unsigned int inner_indx{0};
-			for(std::size_t r2=start2; r2<= k-r1; ++r2){
+			for(std::size_t r2=start2; r2<= end2; ++r2){
 
-				// Compute b_r2*c_r1r2
-				log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2];
+				// log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2]; <--- old version
+				log_vect_res[inner_indx] = gsl_sf_lnfact( (int)k- (int)r2 ) - 
+										   gsl_sf_lnchoose( (int)end2 - (int)start2, r2  ) +
+										   absC2[k-r2]; 
+
 
 				// Check if it is the new maximum of log_vect_res
 	        	if(log_vect_res[inner_indx]>val_max2){
