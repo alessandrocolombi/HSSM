@@ -395,8 +395,6 @@ Eigen::VectorXd my_logC2_central(const unsigned int& n, const double& scale)
 Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, const double& location){
 
 	if(!( (scale<0) & (location<=0) ) ){
-		Rcpp::Rcout<<"scale = "<<scale<<std::endl;
-		Rcpp::Rcout<<"location = "<<location<<std::endl;
 		throw std::runtime_error("Error in compute_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
 	}
 	//	Rcpp::Rcout<<" ... Exact Calculation ... "<<std::endl;
@@ -443,8 +441,6 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 {
 
 	if(!( (scale<0) & (location<=0) ) ){
-		Rcpp::Rcout<<"scale = "<<scale<<std::endl;
-		Rcpp::Rcout<<"location = "<<location<<std::endl;
 		throw std::runtime_error("Error in compute_logC. The recursive formula for the absolute values of the C numbers can be you used if the scale is strictly negative and location in non positive");
 	}
 
