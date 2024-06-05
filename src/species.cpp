@@ -473,7 +473,6 @@ std::vector<double> log_Vprior_long(const unsigned int& k, const std::vector<uns
 
 	//V(0,0;0) = 1 --> log is 0
 	if(k == 0 && std::accumulate(n_i.cbegin(), n_i.cend(), 0) == 0){
-		Rcpp::Rcout<<"V(0,0;0) = 1"<<std::endl;
 		return std::vector<double>(1,0.0);
 	}
 	if(n_i.size() == 0)
@@ -781,112 +780,7 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 }
 
 
-//questa è sola per 1 o 2 gruppi
-double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma)
-{
-
-	//Rcpp::Rcout<<"INPUT --> compute_Kprior_unnormalized: d = "<<n_i.size()<<"; K = "<<k<<std::endl;
-	//for(auto __v : n_i)
-		//Rcpp::Rcout<<__v<<", ";
-	//Rcpp::Rcout<<std::endl;
-
-	double inf = std::numeric_limits<double>::infinity();
-
-	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) and gamma has to be equal");
-	if(n_i.size() > 2 || n_i.size() == 0)
-		throw std::runtime_error("Error in compute_Kprior, the length of n_i (group sizes) must be equal to 1 or 2");
-
-	if(k == 0){
-		//Need to handle degenerate cases. The probability of k=0 is 1 when n_j = 0. It is needed to have coherence when some elements of n_i are equal to 0.
-		if( *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ //if(n_i.size()==1 & n_i[0]==0)  // old version
-			return 0.0;
-		}
-		else
-			return -inf;
-	}
-	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  ) //The probability of having more distinc values than observations must be zero
-		return -inf;
-
-
-
-	if(n_i.size()==1){ // one group only
-		Rcpp::NumericVector absC = compute_logC(n_i[0], -gamma[0], 0.0); //absC[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
-		return absC[k];
-	}
-	else{ // two groups case
-
-		// Compute all C numbers required
-		Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
-		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
-
-		const unsigned int start1 = std::max( 0, (int)k - (int)n_i[0] ); //max(0, k-n1)
-		const unsigned int start2 = std::max( 0, (int)k - (int)n_i[1] ); //max(0, k-n2)
-		const unsigned int end1   = std::min( (int)k, (int)n_i[1] );     //min(k,n2)
-					//Rcpp::Rcout<<"start1 = "<<start1<<std::endl;
-					//Rcpp::Rcout<<"start2 = "<<start2<<std::endl;
-					//Rcpp::Rcout<<"end1   = "<<end1<<std::endl;
-
-					//std::vector<double> log_a(k+1, -inf);    // old version
-		std::vector<double> log_a(end1-start1+1, -inf);    // This vector contains all the quantities that depend only on r1
-		// Initialize quantities to find the maximum of log_a
-		unsigned int idx_max1(0);
-		double val_max1(log_a[idx_max1]);
-
-		// Start for loop
-		unsigned int outer_indx{0};
-		for(std::size_t r1=start1; r1 <= end1; ++r1){
-
-			// Compute a_r1 using its definition
-			log_a[outer_indx] =  absC1[k-r1];
-
-			// Prepare for computing the second term
-
-			// Initialize vector of results
-					//std::vector<double> log_vect_res(k-r1+1, -inf ); // old version
-			std::vector<double> log_vect_res(k-r1-start2+1, -inf );
-
-			// Initialize quantities to find the maximum of log_vect_res
-			unsigned int idx_max2(0);
-			double val_max2(log_vect_res[idx_max2]);
-
-			// Inner loop on r2
-			const unsigned int end2   = std::min( (int)(k-r1), (int)n_i[0] );     //min(k-r1,n1)
-			unsigned int inner_indx{0};
-			for(std::size_t r2=start2; r2<= end2; ++r2){
-
-				// Compute b_r2*c_r1r2
-				log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2];
-
-				// Check if it is the new maximum of log_vect_res
-	        	if(log_vect_res[inner_indx]>val_max2){
-	        		idx_max2 = inner_indx;
-	        		val_max2 = log_vect_res[inner_indx];
-	        	}
-	        			//Rcpp::Rcout<<"Computing for r1 = "<<r1<<" and r2 = "<<r2<<std::endl;
-				inner_indx++;
-			}
-
-
-			// Update log_a:  log(a_i*alfa_i) = log(a_i) + log(alfa_i)
-			log_a[outer_indx] += log_stable_sum(log_vect_res, TRUE, val_max2, idx_max2);
-
-			// Check if it is the new maximum of log_a
-	       	if(log_a[outer_indx]>val_max1){
-	       		idx_max1 = outer_indx;
-	       		val_max1 = log_a[outer_indx];
-	       	}
-	       	outer_indx++;
-		}
-
-		// Complete the sum over all elements in log_a
-		//Rcpp::Rcout<<"OUTPUT --> compute_Kprior_unnormalized: K = "<<k<<"; d = "<<n_i.size()<<"; Prob = "<<log_stable_sum(log_a, TRUE, val_max1, idx_max1)<<std::endl;
-		return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
-
-	}
-}
-
-//questa è sola per 1 o 2 gruppi e in più vengono passati i numeri C già calcolati
+//d=1 or d=2 only. Cnumbers are passed as an input
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i,
 									const std::vector<double>& gamma,
 									const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2)
@@ -987,6 +881,24 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 		// Complete the sum over all elements in log_a
 		return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
 
+	}
+}
+
+//d=1 or d=2 only. Cnumbers are not passed as input.
+double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma)
+{
+
+	if(n_i.size()==1){ // one group only
+		Rcpp::NumericVector absC = compute_logC(n_i[0], -gamma[0], 0.0); //absC[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+		Rcpp::NumericVector absCvoid(n_i[0]+1);
+		return compute_Kprior_unnormalized(k,n_i,gamma,absC,absCvoid);
+	}
+	else{ // two groups case
+
+		// Compute all C numbers required
+		Rcpp::NumericVector absC1 = compute_logC(n_i[0], -gamma[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
+		Rcpp::NumericVector absC2 = compute_logC(n_i[1], -gamma[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
+		return compute_Kprior_unnormalized(k,n_i,gamma,absC1,absC2);
 	}
 }
 
