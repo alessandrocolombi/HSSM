@@ -8,6 +8,12 @@ MCMC_Sampler_c <- function(N__jk, n__j, r, niter, nburn, thin, option) {
     .Call(`_HSSM_MCMC_Sampler_c`, N__jk, n__j, r, niter, nburn, thin, option)
 }
 
+#' All terms of V
+#' NON USARLA è buggata
+#' This function returns the log of all terms in Vpost, from m=0 up to M_max
+#' @export
+NULL
+
 #' 
 NULL
 
@@ -128,14 +134,6 @@ log_qM_post <- function(m, prior, prior_param, k, n_j, gamma_j, log_V, M_max) {
     .Call(`_HSSM_log_qM_post`, m, prior, prior_param, k, n_j, gamma_j, log_V, M_max)
 }
 
-#' All terms of V
-#'
-#' This function returns the log of all terms in Vpost, from m=0 up to M_max
-#' @export
-log_Vpost_long <- function(r, k, m_i, n_i, gamma, prior, prior_param, M_max) {
-    .Call(`_HSSM_log_Vpost_long`, r, k, m_i, n_i, gamma, prior, prior_param, M_max)
-}
-
 #' 
 p_distinct_prior_c <- function(k, n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_p_distinct_prior_c`, k, n_j, gamma_j, prior, prior_param, M_max)
@@ -235,6 +233,12 @@ D_jointKS_post_largen_c <- function(k, m_j, n_j, gamma_j, prior, prior_param, Km
 #' Compute the marginal predictive posterior distribution of the number of shared species in a single point named t
 p_shared_post_largen_c <- function(t, k, m_j, n_j, gamma_j, prior, prior_param, log_V, M_max) {
     .Call(`_HSSM_p_shared_post_largen_c`, t, k, m_j, n_j, gamma_j, prior, prior_param, log_V, M_max)
+}
+
+#' 
+#' Compute the 1 step prediction probabilities for new shared species in a future sample of size (1,1)
+PrShared_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_PrShared_1step_c`, n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max)
 }
 
 #' Test ComponentPrior

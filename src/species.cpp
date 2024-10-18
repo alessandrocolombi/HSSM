@@ -4102,6 +4102,72 @@ double Kpost_var_largen(	const unsigned int& k,
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+//	1-Step ahead prediction of shared species
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+						     const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						     const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						     const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const std::vector<unsigned int> m_j(2,1);
+	// Compute log V prior
+	double log_V{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
+	// Compute log qM post (whole distribution)
+	std::vector<double> log_qMpost_vec = D_log_qM_post(qM,r, n_j, gamma_j, log_V, M_max );
+	int qMsize{log_qMpost_vec.size()};
+	// Calcolo log_Vpost
+	std::vector<double> log_Vpost0_vec(qMsize);
+	std::vector<double> log_Vpost1_vec(qMsize-1);
+	for(std::size_t mstar = 0; mstar < qMsize; mstar++){
+		double lc1 = log_qMpost_vec[mstar] - 
+					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) - 
+					 std::log( (double)n_j[1] + gamma_j[1]*(double)(mstar+r) );
+		log_Vpost0_vec[mstar] = lc1;
+		if(mstar > 0)
+			log_Vpost1_vec[mstar-1] = lc1 + std::log( (double)mstar );
+	}
+
+	double logVpost_0 = log_stable_sum(log_Vpost0_vec, TRUE);
+	double logVpost_1 = log_stable_sum(log_Vpost1_vec, TRUE);
+
+	// Define logF coefficients
+	double lF_010{ std::log((double)rstar_j[1])};
+	double lF_001{ std::log((double)rstar_j[0])};
+	double lF_011{ std::log((double)rstar_j[0]) + std::log((double)rstar_j[1])};
+	double lF_111{ std::log((double)rstar_j[0]+(double)rstar_j[1]+1.0)};
+	// Define logC numbers
+	double lc_00{  std::log( (gamma_j[0]*(double)r_j[0] + (double)n_j[0]) ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_10{  std::log( gamma_j[0] ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_01{  std::log( (gamma_j[0]* (double)r_j[0] + (double)n_j[0]) ) + std::log(gamma_j[1]) };
+	double lc_11{  std::log( gamma_j[0] ) + std::log(gamma_j[1]) };
+
+	// P(S = 1 | X)
+	std::vector<double> log_p1_vec(3,-inf);
+	if(rstar_j[1] > 0)
+		log_p1_vec[0] = logVpost_0 + lF_010 + lc_10;
+	if(rstar_j[0] > 0)
+		log_p1_vec[1] = logVpost_0 + lF_001 + lc_01;
+	if(rstar_j[0] > 0 && rstar_j[1] > 0)
+		log_p1_vec[2] = logVpost_1 + lF_111 + lc_11;
+	double PrSh1 = std::exp( log_stable_sum(log_p1_vec, TRUE) );
+	// P(S = 2 | X)
+	double PrSh2{0.0};
+	if(rstar_j[0] > 0 && rstar_j[1] > 0)
+		PrSh2 = std::exp( logVpost_0 + lF_011 + lc_11 );
+
+	return Rcpp::List::create( Rcpp::Named("PrSh0") = 1.0 - PrSh1 - PrSh2,
+							   Rcpp::Named("PrSh1") = PrSh1,
+							   Rcpp::Named("PrSh2") = PrSh2,
+							   Rcpp::Named("PrSh1plus") = PrSh1 + PrSh2
+							   );
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 

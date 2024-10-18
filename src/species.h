@@ -298,10 +298,9 @@ std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<u
 									  const ComponentPrior& qM, unsigned int M_max = 100 );
 
 //' All terms of V
-//'
+//' NON USARLA è buggata
 //' This function returns the log of all terms in Vpost, from m=0 up to M_max
 //' @export
-// [[Rcpp::export]]
 Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, 
 						   const std::vector<unsigned int>& n_i, 
 						   const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,  
@@ -625,6 +624,18 @@ double Kpost_var_largen(	const unsigned int& k,
 						    const std::vector<double>& gamma_j, 
 						    const Rcpp::String& prior, const Rcpp::List& prior_param, 
 						    double log_V, unsigned int M_max );
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	1-Step ahead prediction of shared species
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+// 1 step predictive shared
+//' 
+//' Compute the 1 step prediction probabilities for new shared species in a future sample of size (1,1)
+// [[Rcpp::export]] 
+Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+						     const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						     const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						     const unsigned int& M_max );
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests

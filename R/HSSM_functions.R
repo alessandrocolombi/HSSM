@@ -1260,6 +1260,11 @@ BO_MomEst = function(n_j,
 
   # STEP 2: generation of the initial design
   des = generateDesign( n=5, getParamSet(obj.fun), fun=lhs::randomLHS )
+  des[1,] = c(0.5,0.5,K12)
+  des[2,] = c(0.1,0.1,K12)
+  des[3,] = c(0.8,0.8,K12)
+  des[4,] = c(0.5,0.5,0.9*K12)
+  des[5,] = c(0.45,0.45,1.1*K12)
   des$y = apply( des, 1, obj.fun )
 
   # STEP 4: Sequential process and acquisition
@@ -1837,8 +1842,18 @@ Rarefaction_curve_d1 = function(data, Nsort = 50, seed0 = 220424 ){
 
 
 
-
-
+#' 1 step prediction Shared
+#'
+#' @export
+PrShared_1step = function(data,gamma_j,prior,lambda,M_max){
+  data_cleaned = matrix(data[apply(data,1,sum)>0,],ncol = 2)
+  n_j = sapply(1:2,function(j){sum(data_cleaned[,j])})
+  r = nrow(data_cleaned)
+  r_j = sapply(1:2, function(j){length(which(data_cleaned[,j]>0))})
+  t = sum(r_j) - r
+  rstar_j = r_j - t
+  PrShared_1step_c( n_j, r, r_j, rstar_j, gamma_j, prior, list("lambda" = lambda), M_max )
+}
 
 
 
@@ -1915,5 +1930,99 @@ Train_Test = function(data, keep = 0.5 , seed = 220424 ){
 
   res = list("data_training" = res_tr,
              "data_test" = res_te)
+  return(res)
+}
+
+#' Training and Testing
+#'
+#' Return train and test dataset having the same group sizes
+#' @param data M x 2 matrix with rownames indicating the species names. Unobserved species must also be included
+#' @export
+Train_Test_evensize = function(data,n_train,n_test,seed){
+  d = ncol(data)
+  n_j  = apply(data,2,sum)
+  n    = sum(n_j)
+
+  if( (n_train + n_test) > min(n_j))
+    stop("Error: (n_train + n_test) < min(n_j)")
+
+  # Prepare reordering structure
+  species_long_all = lapply(1:d, function(x){c()})
+  names(species_long_all) = c("A1","A2")
+  for(i in 1:nrow(data)){
+    for(j in 1:d){
+      if(data[i,j] > 0){
+        counts = data[i,j] # get number of repetitions
+        species = row.names(data)[i] # get species name
+        site = names(species_long_all)[j] # get area
+
+        # repeat "species" for "counts" times and concatenate with past values in the same area
+        species_long_all[[site]] = c(species_long_all[[site]],
+                                     rep(as.character(species),counts))
+      }
+    }
+  }
+  # Reorder
+  set.seed(seed)
+  new_idx1 = sample(1:n_j[1],size = n_j[1], replace = F)
+  new_idx2 = sample(1:n_j[2],size = n_j[2], replace = F)
+
+  X1_reordered = species_long_all[[1]][new_idx1]
+  X2_reordered = species_long_all[[2]][new_idx2]
+
+
+  # cat("\n i = ",i,"\n")
+  tab_gr1_tr = table(X1_reordered[1:(n_train)])
+  tab_gr2_tr = table(X2_reordered[1:(n_train)])
+  tab_gr1_te = table(X1_reordered[(n_train+1):(n_train+n_test)])
+  tab_gr2_te = table(X2_reordered[(n_train+1):(n_train+n_test)])
+
+  names_res = c("data_training","data_test")
+  res = vector("list",length(names_res))
+  names(res) = names_res
+
+  # Train
+  data_tr = matrix(0,nrow = nrow(data), ncol = ncol(data))
+  row.names(data_tr) = row.names(data)
+  data_tr[ as.numeric(names(tab_gr1_tr)), 1 ] = as.numeric(tab_gr1_tr)
+  data_tr[ as.numeric(names(tab_gr2_tr)), 2 ] = as.numeric(tab_gr2_tr)
+  res$data_training = data_tr
+
+  # Test
+  data_te = matrix(0,nrow = nrow(data), ncol = ncol(data))
+  row.names(data_te) = row.names(data)
+  data_te[ as.numeric(names(tab_gr1_te)), 1 ] = as.numeric(tab_gr1_te)
+  data_te[ as.numeric(names(tab_gr2_te)), 2 ] = as.numeric(tab_gr2_te)
+  res$data_test = data_te
+
+  return(res)
+}
+
+#' Frequentist estimators
+#'
+#' Return the frequentist estimators for the 1step ahead probability of observing new shared species
+#' @param data M x 2 matrix with rownames indicating the species names. Unobserved species must also be included
+#' @export
+Freq_probSh_1step = function(data){
+  n = sum(data)
+  n_j = colSums(data); n_1 = n_j[1]; n_2 = n_j[2]
+
+  if(n_1 != n_2)
+    cat("\n Yue1 and Yue2 only works is n_1 = n_2 \n")
+  sing_1 = sum(apply(data,1,function(x){x[1]==1})) # singletons in frist group
+  sing_2 = sum(apply(data,1,function(x){x[2]==1})) # singletons in second group
+  f_11   = sum(apply(data,1,function(x){x[1]==1 & x[2]==1})) # singletons in both groups
+  f_01   = sum(apply(data,1,function(x){x[1]==0 & x[2]==1})) # absent in group 1 and singletons in second group
+  f_10   = sum(apply(data,1,function(x){x[1]==1 & x[2]==0})) # singletons in group 1 and absent in second group
+  f_1plus = sum(apply(data,1,function(x){x[1]==1 & x[2]>0})) # singletons in group 1 and present in second group
+  f_plus1 = sum(apply(data,1,function(x){x[1]> 0 & x[2]==1})) # absent in group 1 and present in second group
+  # Note: sing_1 == f_10 + f_1plus; sing_2 == f_01 + f_plus1
+
+  # Calcolo i 3 stimatori
+  Yue1 = (sing_1+sing_2+f_11-f_01-f_10)/n_1
+  Yue2 = (f_1plus + f_plus1)/n_1
+  Chao1_Sh = (f_1plus)/(n_1) + (f_plus1)/(n_2) + (f_11)/(n_1*n_2)
+
+  res = list("Yue1" = Yue1, "Yue2" = Yue2, "Chao1_Sh" = Chao1_Sh)
   return(res)
 }
