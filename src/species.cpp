@@ -831,15 +831,17 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 
 		// Start for loop
 		unsigned int outer_indx{0};
+
+		//int n_sums{0};
 		for(std::size_t r1=start1; r1 <= end1; r1++){
 
 			// Compute a_r1 using its definition
-					log_a[outer_indx] =  absC1[k-r1]; 
-			//log_a[outer_indx] = gsl_sf_lnfact((int)k- (int)r1) - 
-								//gsl_sf_lnfact((int)k) + 
-								//gsl_sf_lnchoose( (int)k, r1  ) + 
+					log_a[outer_indx] =  absC1[k-r1];
+			//log_a[outer_indx] = gsl_sf_lnfact((int)k- (int)r1) -
+								//gsl_sf_lnfact((int)k) +
+								//gsl_sf_lnchoose( (int)k, r1  ) +
 								//absC1[k-r1]; // <--- explicit version
-			
+
 			// Prepare for computing the second term
 			const unsigned int end2   = std::min( (int)(k-r1), (int)n_i[0] );     //min(k-r1,n1)
 
@@ -853,11 +855,13 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 			// Inner loop on r2
 			unsigned int inner_indx{0};
 			for(std::size_t r2=start2; r2<= end2; r2++){
-				log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2]; 
-				//log_vect_res[inner_indx] = gsl_sf_lnfact( (int)k - (int)r2 ) + 
+				//n_sums++;
+				log_vect_res[inner_indx] = gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2];
+				//log_vect_res[inner_indx] = gsl_sf_lnfact( (int)k - (int)r2 ) +
 										   //gsl_sf_lnchoose( (int)k - (int)r1, r2  ) +
 										   //absC2[k-r2]; // <--- explicit version
-
+				
+				//Rcpp::Rcout<<n_sums<<": ("<<k<<","<<k-r1<<", "<<k-r2<<") = "<<absC1[k-r1] + gsl_sf_lnchoose(k-r2,r1) + my_log_falling_factorial(k-r1-r2,(double)(k-r1)) +  absC2[k-r2] <<std::endl;
 				// Check if it is the new maximum of log_vect_res
 	        	if(log_vect_res[inner_indx]>val_max2){
 	        		idx_max2 = inner_indx;
@@ -879,7 +883,6 @@ double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsi
 	       	outer_indx++;
 
 		}
-
 		// Complete the sum over all elements in log_a
 		return log_stable_sum(log_a, TRUE, val_max1, idx_max1);
 
@@ -1012,7 +1015,7 @@ double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& 
 		throw std::runtime_error("Error in compute_SK_prior_unnormalized, the length of n_i (group sizes) can not be zero");
 	// k=0 case
 	if(k==0){
-		if( s==0 && *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){ 
+		if( s==0 && *std::max_element(n_i.cbegin(),n_i.cend()) == 0 ){
 			throw std::runtime_error("Error in compute_SK_prior_unnormalized, k and s can not be zero even if all n_j are zero");
 			return 0.0;
 		}
@@ -1050,14 +1053,14 @@ double compute_SK_prior_unnormalized(const unsigned int& k, const unsigned int& 
 	unsigned int outer_indx{0};
 	for(std::size_t r1=start1; r1 <= end1; ++r1){
 		// Compute a_r1 using its definition
-		log_a[outer_indx] = gsl_sf_lnchoose((int)k - (int)r1, s) + 
-							my_log_falling_factorial(s,(double)(s+r1)) + 
-							absC1[s+r1] + absC2[k-r1] ; 
-		//log_a[outer_indx] = gsl_sf_lnfact( (int)(s+r1) ) + 
+		log_a[outer_indx] = gsl_sf_lnchoose((int)k - (int)r1, s) +
+							my_log_falling_factorial(s,(double)(s+r1)) +
+							absC1[s+r1] + absC2[k-r1] ;
+		//log_a[outer_indx] = gsl_sf_lnfact( (int)(s+r1) ) +
 							//gsl_sf_lnfact( (int)k - (int)r1 ) -
-							//gsl_sf_lnfact( (int)k ) + 
-							//gsl_sf_lnchoose( (int)k, s ) + 
-							//gsl_sf_lnchoose( (int)k - (int)s, r1 ) + 
+							//gsl_sf_lnfact( (int)k ) +
+							//gsl_sf_lnchoose( (int)k, s ) +
+							//gsl_sf_lnchoose( (int)k - (int)s, r1 ) +
 							//absC1[s+r1] + absC2[k-r1]; // <--- explicit version
 		// Check if it is the new maximum of log_a
 	       if(log_a[outer_indx]>val_max1){
@@ -1386,7 +1389,7 @@ std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<u
 }
 
 
-double compute_log_Vpost(const unsigned int& r, const unsigned int& k, 
+double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
 						 const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
 						 const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max )
 {
@@ -1421,16 +1424,16 @@ double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
 	// Start the loop
 	for(std::size_t counter=0; counter <= M_max; ++counter){
 		const unsigned int m = k + counter;
-		const unsigned int mstar = r + counter; 
+		const unsigned int mstar = r + counter;
 
-		// Compute log_Vprior_term 
+		// Compute log_Vprior_term
 		double log_Vprior_term = my_log_falling_factorial( k, m ) +
 							  	 qM.log_eval_prob(m) -
 								 std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
 						       					   	 [&m](const unsigned int& nj, const double& gamma_j){return log_raising_factorial( nj, gamma_j*(m) );}
 						       					    );
 
-		// Compute coef_qM_post 
+		// Compute coef_qM_post
 		double coef_qM_post = my_log_falling_factorial( k, (double)(mstar + k) ) +
 							  qM.log_eval_prob(mstar + k) -
 							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
@@ -1448,7 +1451,7 @@ double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
 		// Fill the elements of fact_argument
 		std::transform(n_i.cbegin(),n_i.cend(),gamma.cbegin(),fact_argument.begin(),
 					   [&mstar, &k](const unsigned int& nj, const double& gamma_j){return ( (double)nj + (double)(mstar+k)*gamma_j );} );
-		
+
 		// Compute Vpost term
 		log_vect_res[counter] = my_log_falling_factorial(r, (double)mstar ) +
 							 	coef_qM_post -
@@ -1467,9 +1470,21 @@ double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
 	return (log_stable_sum(log_vect_res, TRUE, val_max, idx_max) - log_stable_sum(log_Vprior_vec, TRUE, val_max_V, idx_max_V) );
 }
 
-Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, 
-						   const std::vector<unsigned int>& n_i, 
-						   const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, 
+
+// Simpler wrapper for compute_log_Vpost
+double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
+						 const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
+						 const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max )
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	return compute_log_Vpost(r, k, m_i, n_i, gamma, qM, M_max ) ;
+}
+
+Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i,
+						   const std::vector<unsigned int>& n_i,
+						   const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,
 						   unsigned int M_max )
 {
 	// Component prior preliminary operations
@@ -1508,9 +1523,9 @@ Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const s
 	// Start the loop
 	for(std::size_t counter=0; counter <= M_max; ++counter){
 		const unsigned int m = k + counter;
-		const unsigned int mstar = r + counter; 
+		const unsigned int mstar = r + counter;
 
-		// Compute log_Vprior_term 
+		// Compute log_Vprior_term
 		double log_Vprior_term = my_log_falling_factorial( k, m ) +
 					  	 	     qM.log_eval_prob(m) -
 							     std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
@@ -1518,7 +1533,7 @@ Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const s
 				       					   		   );
         sum_qM += std::exp(qM.log_eval_prob(m));
 
-		// Compute coef_qM_post 
+		// Compute coef_qM_post
 		double coef_qM_post = my_log_falling_factorial( k, (double)(mstar + k) ) +
 					  	 	  qM.log_eval_prob(mstar + k) -
 							  std::inner_product( n_i.cbegin(),n_i.cend(),gamma.cbegin(), 0.0, std::plus<>(),
@@ -1536,7 +1551,7 @@ Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const s
 		// Fill the elements of fact_argument
 		std::transform(n_i.cbegin(),n_i.cend(),gamma.cbegin(),fact_argument.begin(),
 					   [&mstar, &k](const unsigned int& nj, const double& gamma_j){return ( (double)nj + (double)(mstar+k)*gamma_j );} );
-		
+
 		// Compute Vpost term
 		log_vect_res[counter] = my_log_falling_factorial(r, (double)mstar ) +
 							 	coef_qM_post -
@@ -1628,7 +1643,7 @@ double compute_log_Vpost_naive(const unsigned int& r, const unsigned int& k, con
 }
 
 //d=1 or d=2 only. Cnumbers as an input
-double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, 
+double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i,
 								  const std::vector<unsigned int>& n_i, const std::vector<double>& gamma,
 								  const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2)
 {
@@ -1663,7 +1678,7 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 		    	return -inf; //This case is handle just for completeness and to sake of clarity. However, the case m1=m2=0 and r>0 is handled in the previous if (r > m1+m2)
 	}
 
-	// Handle the case of a single group 
+	// Handle the case of a single group
 	if( (n_i.size()==1) || ( n_i.size()==2 && m_i[1] == 0 ) ){ // one group only or m2=0
 		return absC1[r];
 	}
@@ -1688,10 +1703,10 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 		for(std::size_t r1=start1; r1 <= end1; ++r1){
 
 			// Compute a_r1 using its definition
-			log_a[outer_indx] =  absC1[r-r1]; 
-			//log_a[outer_indx] = gsl_sf_lnfact((int)r - (int)r1) - 
-								//gsl_sf_lnfact((int)r) + 
-								//gsl_sf_lnchoose( (int)r , r1  ) + 
+			log_a[outer_indx] =  absC1[r-r1];
+			//log_a[outer_indx] = gsl_sf_lnfact((int)r - (int)r1) -
+								//gsl_sf_lnfact((int)r) +
+								//gsl_sf_lnchoose( (int)r , r1  ) +
 								//absC1[r-r1]; // <--- explicit version
 
 			// Prepare for computing the second term
@@ -1708,10 +1723,10 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 			for(std::size_t r2=start2; r2<= end2; ++r2){
 
 				// Compute
-				log_vect_res[inner_indx] = gsl_sf_lnchoose((int)r - (int)r2, r1) + 
-										   my_log_falling_factorial((int)r - (int)r1 - (int)r2,(double)(r-r1)) +  
-										   absC2[r-r2]; 
-				//log_vect_res[inner_indx] = gsl_sf_lnfact( (int)r- (int)r2 ) - 
+				log_vect_res[inner_indx] = gsl_sf_lnchoose((int)r - (int)r2, r1) +
+										   my_log_falling_factorial((int)r - (int)r1 - (int)r2,(double)(r-r1)) +
+										   absC2[r-r2];
+				//log_vect_res[inner_indx] = gsl_sf_lnfact( (int)r- (int)r2 ) -
 										   //gsl_sf_lnchoose( (int)r - (int)r1, r2  ) +
 										   //absC2[r-r2];  // <--- explicit version
 
@@ -1743,10 +1758,10 @@ double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, 
 }
 
 //d=1 or d=2 only. Cnumbers are not given
-double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, 
+double compute_Kpost_unnormalized(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i,
 								  const std::vector<unsigned int>& n_i, const std::vector<double>& gamma)
-{	
-	// Handle the case of a single group 
+{
+	// Handle the case of a single group
 	if( (n_i.size()==1) || ( n_i.size()==2 && m_i[1] == 0 ) ){ // one group only or m2=0
 		Rcpp::NumericVector absC = compute_logC(  m_i[0], -gamma[0], - ( (double)k*gamma[0] + (double)n_i[0] )  ); //absC[i] = |C(m1,i,-gamma1,-(k*gamma1 + n1))| for i = 0,...,m1
 		Rcpp::NumericVector absCvoid(m_i[0]+1);
@@ -1863,7 +1878,7 @@ double compute_Kpost_unnormalized_recursive(const unsigned int& r, const unsigne
 // r = distinct in new sample
 // t = shared in new sample
 // k = distinct in observed sample
-double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k, 
+double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k,
 									const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
 						 		    const std::vector<double>& gamma,
 						 		    const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2)
@@ -1936,13 +1951,13 @@ double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t
 	for(std::size_t r1=start1; r1 <= end1; ++r1){
 		// Compute a_r1 using its definition
 		log_a[outer_indx] = gsl_sf_lnchoose((int)r - (int)r1, t) +
-						    my_log_falling_factorial(t,(double)(t+r1)) + 
-						    absC1[t+r1] + absC2[r-r1] ; 
-		//	log_a[outer_indx] = gsl_sf_lnfact( (int)(t+r1) ) + 
+						    my_log_falling_factorial(t,(double)(t+r1)) +
+						    absC1[t+r1] + absC2[r-r1] ;
+		//	log_a[outer_indx] = gsl_sf_lnfact( (int)(t+r1) ) +
 							//	gsl_sf_lnfact( (int)r - (int)r1 ) -
-							//	gsl_sf_lnfact( (int)r ) + 
-							//	gsl_sf_lnchoose( (int)r, t ) + 
-							//	gsl_sf_lnchoose( (int)r - (int)t, r1 ) + 
+							//	gsl_sf_lnfact( (int)r ) +
+							//	gsl_sf_lnchoose( (int)r, t ) +
+							//	gsl_sf_lnchoose( (int)r - (int)t, r1 ) +
 							//	absC1[t+r1] + absC2[t-r1]; // <--- explicit version
 		// Check if it is the new maximum of log_a
 	       if(log_a[outer_indx]>val_max1){
@@ -1961,7 +1976,7 @@ double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t
 // r = distinct in new sample
 // t = shared in new sample
 // k = distinct in observed sample
-double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k, 
+double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t, const unsigned int& k,
 									const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
 						 		    const std::vector<double>& gamma)
 {
@@ -1972,8 +1987,8 @@ double compute_SK_post_unnormalized(const unsigned int& r, const unsigned int& t
 	}
 	else{ // two groups case
 		// Compute all C numbers required
-		Rcpp::NumericVector absC1 = compute_logC(m_i[0], -gamma[0], - ( (double)k*gamma[0] + (double)n_i[0] )); 
-		Rcpp::NumericVector absC2 = compute_logC(m_i[1], -gamma[1], - ( (double)k*gamma[1] + (double)n_i[1] )); 
+		Rcpp::NumericVector absC1 = compute_logC(m_i[0], -gamma[0], - ( (double)k*gamma[0] + (double)n_i[0] ));
+		Rcpp::NumericVector absC2 = compute_logC(m_i[1], -gamma[1], - ( (double)k*gamma[1] + (double)n_i[1] ));
 		return compute_SK_post_unnormalized(r,t,k,m_i,n_i,gamma,absC1,absC2);
 	}
 }
@@ -2226,8 +2241,8 @@ double p_shared_prior_c(const unsigned int& s, const Rcpp::NumericVector& n_j, c
 	return res;
 }
 
-double p_joint_prior_c( const unsigned int& k, const unsigned int& s, 
-						const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior, 
+double p_joint_prior_c( const unsigned int& k, const unsigned int& s,
+						const Rcpp::NumericVector& n_j, const Rcpp::NumericVector& gamma_j, const Rcpp::String& prior,
 					 	const Rcpp::List& prior_param, unsigned int M_max  )
 {
 	// Component prior preliminary operations
@@ -2675,9 +2690,9 @@ Rcpp::NumericVector D_distinct_prior_c( const std::vector<unsigned int>& n_j, co
 	return (res);
 }
 
-// Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1 
-Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
-												 const Rcpp::String& prior, const Rcpp::List& prior_param, 
+// Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1
+Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j,
+												 const Rcpp::String& prior, const Rcpp::List& prior_param,
 												 unsigned int M_max, const int& Kmin, const int& Kmax,
 												 std::vector<double>& logV_vec, bool print )
 {
@@ -2705,7 +2720,7 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 		// Cycle for each k in Ksearch
 		double log_V1{0.0};
 		double cumulated1{0.0};
-		
+
 			/*
 				// Remove progress bar
 				Progress progress_bar1(n, TRUE); // Initialize progress bar
@@ -2753,7 +2768,7 @@ Rcpp::NumericVector D_distinct_prior_interval_c( const std::vector<unsigned int>
 
 		Rcpp::NumericVector absC1 = compute_logC(n_j[0], -gamma_j[0], 0.0); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		Rcpp::NumericVector absC2 = compute_logC(n_j[1], -gamma_j[1], 0.0); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
-		
+
 		if(print)
 			Rcpp::Rcout<<" done! "<<std::endl;
 
@@ -3238,10 +3253,10 @@ Rcpp::NumericMatrix D_joint_prior_c( const std::vector<unsigned int>& n_j, const
 	return res;
 }
 
-Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, 
-									 		const Rcpp::String& prior, const Rcpp::List& prior_param, 
-									 		unsigned int M_max, 
-									 		const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j,
+									 		const Rcpp::String& prior, const Rcpp::List& prior_param,
+									 		unsigned int M_max,
+									 		const int& Kmin, const int& Kmax, const int& Smin, const int& Smax,
 									 		std::vector<double>& logV_vec, bool print  )
 {
 	double inf = std::numeric_limits<double>::infinity();
@@ -3310,11 +3325,11 @@ Rcpp::NumericMatrix D_joint_prior_square_c( const std::vector<unsigned int>& n_j
 	return res;
 }
 
-Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j, 
+Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j,
 										   const std::vector<unsigned int>& n_j, const unsigned int& k,
-									 	   const Rcpp::String& prior, const Rcpp::List& prior_param, 
-									 	   unsigned int M_max, 
-									 	   const int& Kmin, const int& Kmax, const int& Smin, const int& Smax, 
+									 	   const Rcpp::String& prior, const Rcpp::List& prior_param,
+									 	   unsigned int M_max,
+									 	   const int& Kmin, const int& Kmax, const int& Smin, const int& Smax,
 									 	   const bool& approxC,
 									 	   std::vector<double>& logVpost_vec, bool print  )
 {
@@ -3344,8 +3359,8 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	}
 	absC1 = logC1_temp;
 	absC2 = logC2_temp;
-	
-	
+
+
 	if(print)
 		Rcpp::Rcout<<" done! "<<std::endl;
 
@@ -3355,7 +3370,7 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	double log_SKpost{0.0};
 	double joint_cumulated{0.0};
 	unsigned int nelem_max = (Kmax-Kmin)*(Kmax-Kmin);
-		
+
 			/*
 				// Remove progress bar
 				Progress progress_bar(nelem_max, TRUE); // Initialize progress bar
@@ -3381,7 +3396,7 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 				log_SKpost = compute_SK_post_unnormalized(r, s, k,m_j,n_j,gamma_j,absC1,absC2);
 						//Rcpp::Rcout<<"log_SKpost = "<<log_SKpost<<std::endl;
 
-				res(s,r) = std::exp(log_Vpost + log_SKpost); // save joint probability	
+				res(s,r) = std::exp(log_Vpost + log_SKpost); // save joint probability
 			}
 
 			joint_cumulated += res(s,r);         // update joint cumulated distribution
@@ -3411,10 +3426,10 @@ Rcpp::NumericMatrix D_joint_post_square_c( const std::vector<unsigned int>& m_j,
 	return res;
 }
 
-// Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1 
+// Compute the distribution for the prior number of distinct components in a given interval. Hence, in general, the returned values may not sum up to 1
 Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>& m_j, const std::vector<double>& gamma_j,
-												const std::vector<unsigned int>& n_j, const unsigned int& k, 
-												const Rcpp::String& prior, const Rcpp::List& prior_param, 
+												const std::vector<unsigned int>& n_j, const unsigned int& k,
+												const Rcpp::String& prior, const Rcpp::List& prior_param,
 												unsigned int M_max, const int& Kmin, const int& Kmax,
 												std::vector<double>& logVpost_vec, bool print )
 {
@@ -3494,7 +3509,7 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 
 		Rcpp::NumericVector absC1 = compute_logC(m_j[0], -gamma_j[0], - ( (double)k*gamma_j[0] + (double)n_j[0] )); //absC1[i] = |C(n1,i,-gamma1)| for i = 0,...,n1
 		Rcpp::NumericVector absC2 = compute_logC(m_j[1], -gamma_j[1], - ( (double)k*gamma_j[1] + (double)n_j[1] )); //absC2[i] = |C(n2,i,-gamma2)| for i = 0,...,n2
-		
+
 		if(print)
 			Rcpp::Rcout<<" done! "<<std::endl;
 
@@ -3507,7 +3522,7 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 					// Remove progress bar
 					Progress progress_bar(n, TRUE); // Initialize progress bar
 				*/
-		
+
 		for(unsigned int r=Kmin; r<=Kmax; ++r){
 			if(print)
 				Rcpp::Rcout<<"r = "<<r<<" ... ";
@@ -3541,7 +3556,7 @@ Rcpp::NumericVector D_distinct_post_interval_c( const std::vector<unsigned int>&
 						if(print)
 							progress_bar.increment(); //update progress bar
 					*/
-			
+
 			if( 1.0 - cumulated < 1e-4 )
 				break;
 		}
@@ -4105,7 +4120,7 @@ double Kpost_var_largen(	const unsigned int& k,
 //	1-Step ahead prediction of shared species
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
 						     const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
 						     const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
 						     const unsigned int& M_max )
@@ -4125,8 +4140,8 @@ Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigne
 	std::vector<double> log_Vpost0_vec(qMsize);
 	std::vector<double> log_Vpost1_vec(qMsize-1);
 	for(std::size_t mstar = 0; mstar < qMsize; mstar++){
-		double lc1 = log_qMpost_vec[mstar] - 
-					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) - 
+		double lc1 = log_qMpost_vec[mstar] -
+					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) -
 					 std::log( (double)n_j[1] + gamma_j[1]*(double)(mstar+r) );
 		log_Vpost0_vec[mstar] = lc1;
 		if(mstar > 0)
@@ -4167,6 +4182,248 @@ Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigne
 							   Rcpp::Named("PrSh1plus") = PrSh1 + PrSh2
 							   );
 }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Full joint prior
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool admissible_prior( const std::vector<unsigned int>& n_j, const unsigned int& r, const int& t,
+					   const std::vector<unsigned int>& r_j, const std::vector<int>& rstar_j )
+{
+	unsigned int min_n = std::min(n_j[0], n_j[1]);
+	bool check_r{ r >= 1 };
+	bool check_t{ t >= 0 && t <= std::min(min_n, r) };
+	bool check_r1{ r_j[0] >= 1 && r_j[0] <= n_j[0] };
+	bool check_r2{ r_j[1] >= 1 && r_j[1] <= n_j[1] };
+	bool check_rstar1{ rstar_j[0] >= 0 };
+	bool check_rstar2{ rstar_j[1] >= 0 };
+	return( check_r && check_t && check_r1 && check_r2 && check_rstar1 && check_rstar2 );
+}
+
+
+
+double lp_fulljoint_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
+					   const std::vector<unsigned int>& r_j,
+					   const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+					   double log_V, const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+					   const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	double result{-inf};
+	// Checks
+	if(n_j.size() != 2)
+		throw std::runtime_error("Error in p_fulljoint_c: the number of groups can only be equal to two");
+	if(gamma_j.size() != 2)
+		throw std::runtime_error("Error in p_fulljoint_c: the number of groups can only be equal to two");
+	if(r_j.size() != 2)
+		throw std::runtime_error("Error in p_fulljoint_c: the number of groups can only be equal to two");
+	if(absC1.size() != n_j[0]+1)
+		throw std::runtime_error("Error in p_fulljoint_c: the length of absC1 must be n_j[0] + 1");
+	if(absC2.size() != n_j[1]+1)
+		throw std::runtime_error("Error in p_fulljoint_c: the length of absC2 must be n_j[1] + 1");
+
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	// Compute log V prior
+	if(log_V <= -inf)
+		log_V = compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) ;
+
+	// Compute t and rstar_j
+	int t{ (int)r_j[0]+ (int)r_j[1]- (int)r };
+	std::vector<int> rstar_j{(int)r_j[0]-t, (int)r_j[1]-t};
+	bool is_admissible = admissible_prior(n_j, r, t, r_j, rstar_j);
+	if( !is_admissible )
+		return result;
+
+	// compute formula
+	result = log_V +
+			 gsl_sf_lnfact(r_j[0]) + gsl_sf_lnfact(r_j[1]) -
+			 gsl_sf_lnfact(rstar_j[0]) - gsl_sf_lnfact(rstar_j[1]) - gsl_sf_lnfact(t) +
+			 absC1[r_j[0]] + absC2[r_j[1]] ;
+	return( result );
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Full joint post
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool admissible_post( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+					  const unsigned int& r, const std::vector<unsigned int>& r_j, const std::vector<int>& rstar_j,
+					  const unsigned int& k, const unsigned int& k1, const unsigned int& k2)
+{
+	unsigned int min_m = std::min(m_j[0], m_j[1]);
+	int s = (int)k1 + (int)k2 - (int)k;
+	bool check_k{ k >= 0 };
+	bool check_k1{ k1 >= 0 && k1 <= m_j[0] };
+	bool check_k2{ k2 >= 0 && k2 <= m_j[1] };
+	bool check_s{ s >= 0 && k <= min_m };
+	return( check_k && check_k1 && check_k2 && check_s);
+}
+
+bool admissible_post( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+					  const unsigned int& r, const std::vector<unsigned int>& r_j, const std::vector<int>& rstar_j,
+					  const unsigned int& k, const unsigned int& k1, const unsigned int& k2,
+					  const unsigned int& sstar, const unsigned int& kstar1 )
+{
+	unsigned int min_m = std::min(m_j[0], m_j[1]);
+	int s = (int)k1 + (int)k2 - (int)k;
+	int s21 = (int)k2 + (int)kstar1 - (int)k;
+	int s12 = (int)k1 - (int)kstar1 - (int)sstar;
+	int kstar2 = (int)k - (int)kstar1 - (int)sstar ;
+	bool check_k{ k >= 0 };
+	bool check_s{ s >= 0 && k <= min_m };
+	bool check_k1{ k1 >= 0 && k1 <= m_j[0] };
+	bool check_k2{ k2 >= 0 && k2 <= m_j[1] };
+	bool check_kstar1{ kstar1 >= 0 && kstar1 <= std::min(m_j[0],k1) };
+	bool check_kstar2{ kstar2 >= 0 && kstar2 <= std::min(m_j[1],k2) };
+	bool check_sstar{ sstar >= 0 && sstar <= std::min(min_m, k) };
+	bool check_s21{ s21 >= 0 && s21 <= rstar_j[0] };
+	bool check_s12{ s12 >= 0 && s12 <= rstar_j[1] };
+	return( check_k && check_k1 && check_k2 && check_sstar && check_s21 && check_s12 && check_s );
+}
+
+double lp_fullpost_c( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+					  const unsigned int& r, const std::vector<unsigned int>& r_j,
+					  const unsigned int& k, const std::vector<unsigned int>& k_j,
+					  const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+					  double log_Vpost, 
+					  const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+					  const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	double result{-inf};
+	// Checks
+	if(n_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(m_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(gamma_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(r_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(k_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(absC1.size() != m_j[0]+1)
+		throw std::runtime_error("Error in lp_fullpost_c: the length of absC1 must be m_j[0] + 1");
+	if(absC2.size() != m_j[1]+1)
+		throw std::runtime_error("Error in lp_fullpost_c: the length of absC2 must be m_j[1] + 1");
+
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+
+	// Compute log V post
+	if(log_Vpost <= -inf)
+		log_Vpost = compute_log_Vpost(k, r, m_j, n_j, gamma_j, qM, M_max );
+	
+	//Rcpp::Rcout<<"log_Vpost = "<<log_Vpost<<std::endl;
+
+	// Compute prior quantities
+	int t{ (int)r_j[0]+ (int)r_j[1]- (int)r };
+	std::vector<int> rstar_j{(int)r_j[0]-t, (int)r_j[1]-t};
+	bool is_admissible = admissible_prior(n_j, r, t, r_j, rstar_j);
+	if( !is_admissible ){
+		throw std::runtime_error("Error in lp_fullpost_c: prior values (r,r1,r2) are not admissible ");
+		return result;
+	}
+	is_admissible = admissible_post( m_j,n_j,r,r_j,rstar_j,k,k_j[0],k_j[1]);
+	if( !is_admissible )
+		return result;
+
+	
+	double outer_temp{-inf};
+	double inner_temp{-inf};
+	std::vector<double> log_a_outer;
+	log_a_outer.reserve( (k+1)*(k+1) );
+	for(std::size_t sstar=0; sstar <= k; sstar++){
+		std::vector<double> log_a_inner;
+		log_a_inner.reserve( ((int)k-(int)sstar+1) );
+		for(std::size_t kstar1=0; kstar1 <= ((int)k-(int)sstar); kstar1++ ){
+			is_admissible = admissible_post( m_j,n_j,r,r_j,rstar_j,k,k_j[0],k_j[1],sstar,kstar1);
+			if(is_admissible){
+				int s21 = (int)k_j[1] + (int)kstar1 - (int)k;
+				int s12 = (int)k_j[0] - (int)kstar1 - (int)sstar;
+				inner_temp = gsl_sf_lnchoose( k-sstar, kstar1 ) + 
+									gsl_sf_lnchoose( rstar_j[0], s21) + 
+									gsl_sf_lnchoose( rstar_j[1], s12) ;
+				log_a_inner.push_back(inner_temp);
+			}
+		}
+		if(k >= sstar && log_a_inner.size() > 0){
+			outer_temp = gsl_sf_lnchoose(k,sstar);
+			if(log_a_inner.size() == 1)
+				outer_temp += log_a_inner[0];
+			else
+				outer_temp += log_stable_sum(log_a_inner, TRUE);
+			
+			log_a_outer.push_back(outer_temp);
+		}
+	}
+
+	//Rcpp::Rcout<<"absC1[k_j[0]] = "<<absC1[k_j[0]]<<"; absC2[k_j[1]] = "<<absC2[k_j[1]]<<std::endl;
+	//Rcpp::Rcout<<"gsl_sf_lnfact(k_j[0]):"<<std::endl<<gsl_sf_lnfact(k_j[0])<<std::endl;
+	//Rcpp::Rcout<<"gsl_sf_lnfact(k_j[1]):"<<std::endl<<gsl_sf_lnfact(k_j[1])<<std::endl;
+	//Rcpp::Rcout<<"gsl_sf_lnfact(k):"<<std::endl<<gsl_sf_lnfact(k)<<std::endl;
+	result = log_Vpost + 
+			 gsl_sf_lnfact(k_j[0]) + gsl_sf_lnfact(k_j[1]) - gsl_sf_lnfact(k) +
+			 absC1[k_j[0]] + absC2[k_j[1]];	
+
+	if(log_a_outer.size() == 1)
+		result += log_a_outer[0];
+	else
+		result += log_stable_sum(log_a_outer, TRUE);
+
+	return( result );
+}
+
+
+double lp_coverage_post( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+						 const unsigned int& r, 
+						 const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						 const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+						 const unsigned int& M_max)
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	double result{-inf};
+
+	// Checks
+	if(n_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(m_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(gamma_j.size() != 2)
+		throw std::runtime_error("Error in lp_fullpost_c: the number of groups can only be equal to two");
+	if(absC1.size() != m_j[0]+1)
+		throw std::runtime_error("Error in lp_fullpost_c: the length of absC1 must be m_j[0] + 1");
+	if(absC2.size() != m_j[1]+1)
+		throw std::runtime_error("Error in lp_fullpost_c: the length of absC2 must be m_j[1] + 1");
+
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+
+	// Compute V coefficients
+	unsigned int m{m_j[0]+m_j[1]};
+	std::vector<double> logV_post_vec(m+1,-inf);
+	for(std::size_t k = 0; k <= m; k++)
+		logV_post_vec[k] = compute_log_Vpost(k, r, m_j, n_j, gamma_j, qM, M_max );
+
+	std::vector<double> res_vec((m_j[0]+1)*(m_j[1]+1), -inf);
+	int counter{0};
+	for(std::size_t k1 = 0; k1 <= m_j[0]; k1++){
+		for(std::size_t k2 = 0; k2 <= m_j[1]; k2++){
+			res_vec[counter] = logV_post_vec[k1+k2] + absC1[k1] + absC2[k2];
+			counter++;
+		}
+	}
+	result = log_stable_sum(res_vec, TRUE);
+	return result;
+}
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------

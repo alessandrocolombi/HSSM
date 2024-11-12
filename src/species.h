@@ -311,6 +311,18 @@ Rcpp::List log_Vpost_long( const unsigned int& r, const unsigned int& k, const s
 double compute_log_Vpost(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
 
+// Simpler wrapper for compute_log_Vpost
+//' log V post 
+//'
+//' @param r: number of NEW species
+//' @param k: number of OLD species
+//' @export
+// [[Rcpp::export]]
+double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
+						 const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
+						 const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max );
+
+
 double compute_log_Vpost_naive(const unsigned int& r, const unsigned int& k, const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i, 
 						 	   const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100);
 
@@ -637,6 +649,62 @@ Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigne
 						     const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
 						     const unsigned int& M_max );
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Full joint prior
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool admissible_prior( const std::vector<unsigned int>& n_j, const unsigned int& r, const unsigned int& t, 
+					   const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j );
+
+/*
+double p_fulljoint_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+					  const std::vector<unsigned int>& r_j, 
+					  const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+					  double log_V, const unsigned int& M_max );
+*/
+
+// P(K,K1,K2)
+//' 
+//' Compute the logarithm of the the full joint prior probability. Cnumbers are passed as an input
+// [[Rcpp::export]] 
+double lp_fulljoint_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+					  const std::vector<unsigned int>& r_j, 
+					  const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+					  double log_V, const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+					  const unsigned int& M_max );
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Full joint post
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bool admissible_post( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+					  const unsigned int& r, const std::vector<unsigned int>& r_j, const std::vector<int>& rstar_j,
+					  const unsigned int& k, const unsigned int& k1, const unsigned int& k2);
+bool admissible_post( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+					  const unsigned int& r, const std::vector<unsigned int>& r_j, const std::vector<int>& rstar_j,
+					  const unsigned int& k, const unsigned int& k1, const unsigned int& k2,
+					  const unsigned int& sstar, const unsigned int& kstar1 );
+// P(K,K1,K2 | X)
+//' 
+//' Compute the logarithm of the full joint posterior probability. Cnumbers are passed as an input
+// [[Rcpp::export]] 
+double lp_fullpost_c( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+					  const unsigned int& r, const std::vector<unsigned int>& r_j,
+					  const unsigned int& k, const std::vector<unsigned int>& k_j,
+					  const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+					  double log_Vpost, 
+					  const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+					  const unsigned int& M_max );
+
+// P(S = 0 | X)
+//' 
+//' Compute the logarithm of the coverage probability for shared species. Cnumbers are passed as an input
+// [[Rcpp::export]] 
+double lp_coverage_post( const std::vector<unsigned int>& m_j, const std::vector<unsigned int>& n_j,
+						 const unsigned int& r, 
+						 const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						 const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+						 const unsigned int& M_max);
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------

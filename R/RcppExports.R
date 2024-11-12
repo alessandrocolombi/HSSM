@@ -134,6 +134,15 @@ log_qM_post <- function(m, prior, prior_param, k, n_j, gamma_j, log_V, M_max) {
     .Call(`_HSSM_log_qM_post`, m, prior, prior_param, k, n_j, gamma_j, log_V, M_max)
 }
 
+#' log V post 
+#'
+#' @param r: number of NEW species
+#' @param k: number of OLD species
+#' @export
+compute_log_Vpost <- function(r, k, m_i, n_i, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_compute_log_Vpost`, r, k, m_i, n_i, gamma, prior, prior_param, M_max)
+}
+
 #' 
 p_distinct_prior_c <- function(k, n_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_p_distinct_prior_c`, k, n_j, gamma_j, prior, prior_param, M_max)
@@ -239,6 +248,24 @@ p_shared_post_largen_c <- function(t, k, m_j, n_j, gamma_j, prior, prior_param, 
 #' Compute the 1 step prediction probabilities for new shared species in a future sample of size (1,1)
 PrShared_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_PrShared_1step_c`, n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
+#' Compute the logarithm of the the full joint prior probability. Cnumbers are passed as an input
+lp_fulljoint_c <- function(n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max) {
+    .Call(`_HSSM_lp_fulljoint_c`, n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max)
+}
+
+#' 
+#' Compute the logarithm of the full joint posterior probability. Cnumbers are passed as an input
+lp_fullpost_c <- function(m_j, n_j, r, r_j, k, k_j, gamma_j, prior, prior_param, log_Vpost, absC1, absC2, M_max) {
+    .Call(`_HSSM_lp_fullpost_c`, m_j, n_j, r, r_j, k, k_j, gamma_j, prior, prior_param, log_Vpost, absC1, absC2, M_max)
+}
+
+#' 
+#' Compute the logarithm of the coverage probability for shared species. Cnumbers are passed as an input
+lp_coverage_post <- function(m_j, n_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max) {
+    .Call(`_HSSM_lp_coverage_post`, m_j, n_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max)
 }
 
 #' Test ComponentPrior

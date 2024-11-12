@@ -1260,11 +1260,11 @@ BO_MomEst = function(n_j,
 
   # STEP 2: generation of the initial design
   des = generateDesign( n=5, getParamSet(obj.fun), fun=lhs::randomLHS )
-  des[1,] = c(0.5,0.5,K12)
-  des[2,] = c(0.1,0.1,K12)
-  des[3,] = c(0.8,0.8,K12)
-  des[4,] = c(0.5,0.5,0.9*K12)
-  des[5,] = c(0.45,0.45,1.1*K12)
+  # des[1,] = c(0.5,0.5,K12)
+  # des[2,] = c(0.1,0.1,K12)
+  # des[3,] = c(0.8,0.8,K12)
+  # des[4,] = c(0.5,0.5,0.9*K12)
+  # des[5,] = c(0.45,0.45,1.1*K12)
   des$y = apply( des, 1, obj.fun )
 
   # STEP 4: Sequential process and acquisition
@@ -2026,3 +2026,56 @@ Freq_probSh_1step = function(data){
   res = list("Yue1" = Yue1, "Yue2" = Yue2, "Chao1_Sh" = Chao1_Sh)
   return(res)
 }
+
+
+
+#' Log full prior
+#'
+#' Compute the full joint prior probability.
+#' @export
+lp_fulljoint = function( n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max ){
+
+  if( is.null(absC1) )
+    absC1 = compute_logC(n_j[1], -gamma_j[1], 0.0);
+  if(is.null(absC2))
+    absC2 = compute_logC(n_j[2], -gamma_j[2], 0.0);
+
+  return(p_fulljoint_c( n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max ))
+
+}
+
+#' Log full posterior
+#'
+#' Compute the full joint prior probability.
+#' @export
+lp_fullpost = function( n_j, m_j, r, r_j, k, k_j, gamma_j, prior, prior_param, log_Vpost, absC1, absC2, M_max ){
+     
+     
+  if( is.null(absC1) )
+    absC1 = compute_logC(  m_j[1], -gamma_j[1], - ( r_j[1]*gamma_j[1] + n_j[1] )  )
+  if(is.null(absC2))
+    absC2 = compute_logC(  m_j[2], -gamma_j[2], - ( r_j[2]*gamma_j[2] + n_j[2] )  )
+
+  return(lp_fullpost_c( m_j, n_j, r, r_j, k, k_j, gamma_j, prior, prior_param, log_Vpost, absC1, absC2, M_max ))
+}
+
+#' Log coverage prob m steps ahead
+#'
+#' Compute the log of the coverage probability for shared species m-steps ahead
+#' @export
+lp_coverage_post = function(m_j, n_j, r, r_j = NULL, gamma_j, prior, prior_param, absC1, absC2, M_max)
+{
+  if( is.null(absC1) ){
+    if(is.null(r_j) || length(r_j) != 2 )
+      stop("Error in lp_coverage_post: if C numbers are not passed as a input, r_j must be a vector of size 2")
+    absC1 = compute_logC(  m_j[1], -gamma_j[1], - ( r_j[1]*gamma_j[1] + n_j[1] )  )
+  }
+  if( is.null(absC2) ){
+    if(is.null(r_j) || length(r_j) != 2 )
+      stop("Error in lp_coverage_post: if C numbers are not passed as a input, r_j must be a vector of size 2")
+  }
+  absC2 = compute_logC(  m_j[2], -gamma_j[2], - ( r_j[2]*gamma_j[2] + n_j[2] )  )
+  return( lp_coverage_post(m_j, n_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max) )
+}
+
+
