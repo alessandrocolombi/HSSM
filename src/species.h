@@ -243,6 +243,17 @@ int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_
 double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, 
 						const ComponentPrior& qM, unsigned int M_max = 100 );
 
+// Simpler wrapper for compute_log_Vpost
+//' log V prior 
+//'
+//' @param r: number of global distinct species
+//' @export
+// [[Rcpp::export]]
+double compute_log_Vprior(const unsigned int& r, const std::vector<unsigned int>& n_i,
+						  const std::vector<double>& gamma, 
+						  const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						  unsigned int M_max );
+
 // Works for d>2
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max = 100 );
 

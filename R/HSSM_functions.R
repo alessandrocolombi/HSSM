@@ -2049,8 +2049,8 @@ lp_fulljoint = function( n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1,
 #' Compute the full joint prior probability.
 #' @export
 lp_fullpost = function( n_j, m_j, r, r_j, k, k_j, gamma_j, prior, prior_param, log_Vpost, absC1, absC2, M_max ){
-     
-     
+
+
   if( is.null(absC1) )
     absC1 = compute_logC(  m_j[1], -gamma_j[1], - ( r_j[1]*gamma_j[1] + n_j[1] )  )
   if(is.null(absC2))
@@ -2078,4 +2078,80 @@ lp_coverage_post = function(m_j, n_j, r, r_j = NULL, gamma_j, prior, prior_param
   return( lp_coverage_post(m_j, n_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max) )
 }
 
+#' Correlation and diversity
+#'
+#' Compute via Monte Carlo estimation the correlation and the inverse of the Simpson diversity
+#' @export
+Corr_Diversity = function(gamma_j,lambda, B = 10000){
+  M_sample = rpois(n = B, lambda = lambda) + 1
+  MC = 1/M_sample
+  MC1 = 1/(1 + gamma_j[1] * M_sample)
+  MC2 = 1/(1 + gamma_j[2] * M_sample)
+  corr = mean(MC) / sqrt( (1+gamma_j[1])*(1+gamma_j[2])*mean(MC1)*mean(MC2)  )
+  Ent1 = 1 / ( (1+gamma_j[1])*mean(MC1)  )
+  Ent2 = 1 / ( (1+gamma_j[2])*mean(MC2)  )
+  return( list("corr" = corr, "div1" = Ent1, "div2" = Ent2) )
+}
 
+#' Correlation and Gini-Simpson index
+#'
+#' Compute via Monte Carlo estimation the correlation and Gini-Simpson index
+#' @export
+Corr_GiniSimpson = function(gamma_j,lambda, B = 10000){
+  M_sample = rpois(n = B, lambda = lambda) + 1
+  MC = 1/M_sample
+  MC1 = 1/(1 + gamma_j[1] * M_sample)
+  MC2 = 1/(1 + gamma_j[2] * M_sample)
+  corr = mean(MC) / sqrt( (1+gamma_j[1])*(1+gamma_j[2])*mean(MC1)*mean(MC2)  )
+  ssp1 = (1+gamma_j[1])*mean(MC1)
+  ssp2 = (1+gamma_j[2])*mean(MC2)
+  return( list("corr" = corr, "GiniSimp_1" = 1-ssp1, "GiniSimp_2" = 1-ssp2) )
+}
+Simpson_entropy = function(p){
+  sump2 = sum(p*p)
+  1/sump2
+}
+
+#' Morisita
+#'
+#' Compute the exact value of the Morisita index
+#' @export
+Morisita = function(p1,p2){
+  sump1 = sum(p1*p1)
+  sump12 = sum(p1*p2)
+  sump2 = sum(p2*p2)
+
+  (2*sump12)/(sump1 + sump2)
+}
+
+#' Empirical Gini-Simpson
+#'
+#' Compute the empirical estimate of the Gini-Simpson index via iNEXT package function
+#' @export
+GiniSimpson_est = function(data_j){
+  data_j_cleaned = data_j[data_j > 0]
+  ChaoGiniSimpson = iNEXT::ChaoSimpson(x = data_j_cleaned, datatype="abundance")
+  ChaoGiniSimpson$Estimator
+}
+
+#' Empirical Morisita
+#'
+#' Compute the empirical estimate of the Morisita index
+#' @export
+Morosita_est = function(data){
+  data_cleaned = matrix(data[apply(data,1,sum)>0,],ncol = 2)
+  n_j = sapply(1:2,function(j){sum(data_cleaned[,j])})
+  data_norm = lapply(1:2, function(i){data_cleaned[,i] / n_j[i]})
+  num = 2 * sum(data_norm[[1]]*data_norm[[2]])
+  den = sum(data_norm[[1]]*data_norm[[1]]) + sum(data_norm[[2]]*data_norm[[2]])
+  num/den
+}
+
+#' Empirical Morisita (vegan)
+#'
+#' Compute the empirical estimate of the Morisita index via vegan package function
+#' @export
+Mor_est = function(data){
+  data_cleaned = matrix(data[apply(data,1,sum)>0,],ncol = 2)
+  1 - vegan::vegdist(t(data_cleaned), method = "morisita")
+}

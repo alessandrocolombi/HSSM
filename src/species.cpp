@@ -466,6 +466,8 @@ Rcpp::NumericVector compute_logC(const unsigned int& n, const double& scale, con
 //	Approximations for V
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// DO NOT USE THESE FUNCTIONS
+
 std::vector<double> log_Vprior_long(const unsigned int& k, const std::vector<unsigned int>& n_i,
 									const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,
 									unsigned int M_max )
@@ -476,12 +478,12 @@ std::vector<double> log_Vprior_long(const unsigned int& k, const std::vector<uns
 		return std::vector<double>(1,0.0);
 	}
 	if(n_i.size() == 0)
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+		throw std::runtime_error("Error in log_Vprior_long, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in log_Vprior_long, the length of n_i (group sizes) and gamma has to be equal");
 
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
-		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_long. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
 	// Component prior preliminary operations
 	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
@@ -522,14 +524,14 @@ int log_Vprior_apprx1(const unsigned int& k, const std::vector<unsigned int>& n_
 {
 
 	if(k == 0)
-		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx1. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
 	if(n_i.size() == 0)
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+		throw std::runtime_error("Error in log_Vprior_apprx1, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in log_Vprior_apprx1, the length of n_i (group sizes) and gamma has to be equal");
 
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
-		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx1. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
 	// Component prior preliminary operations
 	// auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
@@ -581,14 +583,14 @@ int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_
 {
 
 	if(k == 0)
-		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx2. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
 	if(n_i.size() == 0)
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+		throw std::runtime_error("Error in log_Vprior_apprx2, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in log_Vprior_apprx2, the length of n_i (group sizes) and gamma has to be equal");
 
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
-		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx2. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
 	// Constant term
 	int n = std::accumulate(n_i.cbegin(),n_i.cend(),0.0);
@@ -620,11 +622,11 @@ int log_Vprior_apprx2(const unsigned int& k, const std::vector<unsigned int>& n_
 {
 
 	if(k == 0)
-		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx2. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
 	if(n_i.size() == 0)
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+		throw std::runtime_error("Error in log_Vprior_apprx2, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in log_Vprior_apprx2, the length of n_i (group sizes) and gamma has to be equal");
 
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
 		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
@@ -642,14 +644,14 @@ int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_
 {
 
 	if(k == 0)
-		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx3. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
 	if(n_i.size() == 0)
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+		throw std::runtime_error("Error in log_Vprior_apprx3, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in log_Vprior_apprx3, the length of n_i (group sizes) and gamma has to be equal");
 
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
-		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx3. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
 	// Constant term
 	int n = std::accumulate(n_i.cbegin(),n_i.cend(),0.0);
@@ -685,14 +687,14 @@ int log_Vprior_apprx3(const unsigned int& k, const std::vector<unsigned int>& n_
 {
 
 	if(k == 0)
-		throw std::runtime_error("Error in compute_log_Vprior. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx3. It does not make any sense to evaluate this function when k=0. The behaviuor is indefined");
 	if(n_i.size() == 0)
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) must be positive");
+		throw std::runtime_error("Error in log_Vprior_apprx3, the length of n_i (group sizes) must be positive");
 	if(n_i.size() != gamma.size())
-		throw std::runtime_error("Error in compute_log_Vprior, the length of n_i (group sizes) and gamma has to be equal");
+		throw std::runtime_error("Error in log_Vprior_apprx3, the length of n_i (group sizes) and gamma has to be equal");
 
 	if( k > std::accumulate(n_i.cbegin(), n_i.cend(), 0.0)  )
-		throw std::runtime_error("Error in compute_log_Vprior. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
+		throw std::runtime_error("Error in log_Vprior_apprx3. It is not possible that k is higher than the sum of the elements of n_i. The behaviuor is indefined");
 
 	// Component prior preliminary operations
 	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
@@ -723,6 +725,18 @@ double compute_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_
 	return res;
 }
 
+
+// Simpler wrapper for compute_log_Vprior
+double compute_log_Vprior(const unsigned int& r, const std::vector<unsigned int>& n_i,
+						  const std::vector<double>& gamma, 
+						  const Rcpp::String& prior, const Rcpp::List& prior_param, 
+						  unsigned int M_max )
+{
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	return compute_log_Vprior(r, n_i, gamma, qM, M_max ) ;
+}
 
 // Works for d>2
 double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma,
@@ -1388,7 +1402,7 @@ std::vector<double> build_log_qM_post(const unsigned int& k, const std::vector<u
 	return log_vect_res;
 }
 
-
+// This is the important function
 double compute_log_Vpost(const unsigned int& r, const unsigned int& k,
 						 const std::vector<unsigned int>& m_i, const std::vector<unsigned int>& n_i,
 						 const std::vector<double>& gamma, const ComponentPrior& qM, unsigned int M_max )

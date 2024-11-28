@@ -127,6 +127,14 @@ log_Vprior_apprx3 <- function(k, n_i, tol, gamma, prior, prior_param, M_max) {
     .Call(`_HSSM_log_Vprior_apprx3`, k, n_i, tol, gamma, prior, prior_param, M_max)
 }
 
+#' log V prior 
+#'
+#' @param r: number of global distinct species
+#' @export
+compute_log_Vprior <- function(r, n_i, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_compute_log_Vprior`, r, n_i, gamma, prior, prior_param, M_max)
+}
+
 #' log qM - Posterior evaluation
 #'
 #' @export

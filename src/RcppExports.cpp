@@ -192,6 +192,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_log_Vprior
+double compute_log_Vprior(const unsigned int& r, const std::vector<unsigned int>& n_i, const std::vector<double>& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, unsigned int M_max);
+RcppExport SEXP _HSSM_compute_log_Vprior(SEXP rSEXP, SEXP n_iSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_i(n_iSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_log_Vprior(r, n_i, gamma, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_qM_post
 Rcpp::NumericVector log_qM_post(const unsigned int& m, const Rcpp::String& prior, const Rcpp::List& prior_param, const unsigned int& k, const std::vector<unsigned int>& n_j, const std::vector<double>& gamma_j, double log_V, unsigned int M_max);
 RcppExport SEXP _HSSM_log_qM_post(SEXP mSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP kSEXP, SEXP n_jSEXP, SEXP gamma_jSEXP, SEXP log_VSEXP, SEXP M_maxSEXP) {
@@ -685,6 +701,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_log_Vprior_apprx1", (DL_FUNC) &_HSSM_log_Vprior_apprx1, 7},
     {"_HSSM_log_Vprior_apprx2", (DL_FUNC) &_HSSM_log_Vprior_apprx2, 7},
     {"_HSSM_log_Vprior_apprx3", (DL_FUNC) &_HSSM_log_Vprior_apprx3, 7},
+    {"_HSSM_compute_log_Vprior", (DL_FUNC) &_HSSM_compute_log_Vprior, 6},
     {"_HSSM_log_qM_post", (DL_FUNC) &_HSSM_log_qM_post, 8},
     {"_HSSM_compute_log_Vpost", (DL_FUNC) &_HSSM_compute_log_Vpost, 8},
     {"_HSSM_p_distinct_prior_c", (DL_FUNC) &_HSSM_p_distinct_prior_c, 6},
