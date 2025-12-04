@@ -794,6 +794,7 @@ double compute_log_Vprior(const unsigned int& k, const std::vector<unsigned int>
 }
 
 
+
 //d=1 or d=2 only. Cnumbers are passed as an input
 double compute_Kprior_unnormalized(const unsigned int& k, const std::vector<unsigned int>& n_i,
 									const std::vector<double>& gamma,
@@ -4437,6 +4438,104 @@ double lp_coverage_post( const std::vector<unsigned int>& m_j, const std::vector
 	result = log_stable_sum(res_vec, TRUE);
 	return result;
 }
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	MLE 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+double log_peppf( const int& r,  const Rcpp::IntegerVector& n_j, const Rcpp::IntegerMatrix& n_jk, 
+				  const double& gamma1, const double& gamma2, const double& Lambda, 
+				  unsigned int M_max )
+{
+	if(n_j.size() != 2)
+		throw std::runtime_error("Error in log_peppf: the current implementation requires n_j to be of size 2 ");
+
+	//Rcpp::Rcout<<" ++++++++++++++++++++++++++++++++++++++++++++++++ "<<std::endl;
+	//Rcpp::Rcout<<"( "<<gamma1<<", "<<gamma2<<", "<<Lambda<<" )"<<std::endl;
+
+	double inf = std::numeric_limits<double>::infinity();
+	int n = std::accumulate(n_j.cbegin(), n_j.cend(), 0);
+
+	// Check n and r
+	if(n < 1)
+		throw std::runtime_error("Error in log_peppf: n must be at least one");
+	if(r < 1)
+		throw std::runtime_error("Error in log_peppf: r must be at least one");
+	if(r > n)
+		throw std::runtime_error("Error in log_peppf: r must be smaller or equal to n");
+	// if here, 1 <= r <= n 
+
+	// Check n_jk
+	if(n_jk.nrow() != r)
+		throw std::runtime_error("Error in log_peppf: the number of rows of n_jk must match the number of global distinct species r");
+
+	// Check parameters
+	if(M_max < 1 || M_max > 5000)
+		throw std::runtime_error("Error in log_peppf: invalid number of M_max ");
+	if(gamma1 < 1e-16 || gamma2 < 1e-16){
+		Rcpp::Rcout<<"Caso proibito"<<std::endl;
+		return -std::exp(20);
+	}
+	if(Lambda < 0){
+		Rcpp::Rcout<<"Caso proibito"<<std::endl;
+		return -std::exp(20);
+	}
+
+	// Define vector of gamma_j
+	std::vector<double> gamma_j = {gamma1,gamma2}; // <-- using the current value of the parameters
+	std::vector<unsigned int> n_j_vec = {n_j(0),n_j(1)};
+
+
+	// Define qM prior
+	Rcpp::String prior = "Poisson"; 
+	Rcpp::List prior_param = Rcpp::List::create(Rcpp::Named("lambda") = Lambda); // <-- using the current value of the parameters
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	
+	double logV = compute_log_Vprior(r, n_j_vec, gamma_j, qM, M_max ); // compute log_V
+	//Rcpp::Rcout<<"logV = "<<logV<<std::endl;
+
+	
+	double res{logV}; // init. res to log_V and sum all remaining terms, i.e, log( poch(n_jk,\gamma_j) )
+	for(int j = 0; j < 2; j++){
+		for(int l = 0; l < r; l++){
+			//Rcpp::Rcout<<"("<<j<<", "<<l<<"): "<<n_jk(l,j)<<" || "<<gamma_j[j]<<std::endl;
+			res += std::lgamma( (double)n_jk(l,j) + gamma_j[j]) - std::lgamma(gamma_j[j]); //log_raising_factorial(n_jk(j,l), gamma_j[j]); 
+		}	
+	}
+	//Rcpp::Rcout<<"Poch = "<<res - logV<<std::endl;
+
+	if(res > 0){
+		Rcpp::Rcout<<" !!!!!!!!!!!!!!!!!!!!!!!! "<<std::endl;
+		Rcpp::Rcout<<" Se qua male, devo aumentare M_max"<<std::endl;
+		return 0.0;
+		//Check for User Interruption
+		try{
+		    Rcpp::checkUserInterrupt();
+		}
+		catch(Rcpp::internal::InterruptedException e){
+		    //Print error and return
+		    throw std::runtime_error("Execution stopped by the user");
+		}
+		// increase M_max and repeat
+		//log_peppf(r, n_j, n_jk, gamma1, gamma2, Lambda, 2*M_max );
+	}
+	if( res == inf || std::isnan(res) || res == -inf){
+		Rcpp::Rcout<<"Error in log_peppf: NaN, Inf or -Inf returned "<<std::endl;
+		Rcpp::Rcout<<"res = "<<res<<std::endl;
+		Rcpp::Rcout<<"logV = "<<logV<<std::endl;
+		Rcpp::Rcout<<"gamma1 = "<<gamma1<<std::endl;
+		Rcpp::Rcout<<"gamma2 = "<<gamma2<<std::endl;
+		Rcpp::Rcout<<"Lambda = "<<Lambda<<std::endl;
+		Rcpp::Rcout<<"n = "<<n<<std::endl;
+		Rcpp::Rcout<<"r = "<<r<<std::endl;
+		throw std::runtime_error("Error ");
+	}
+	//Rcpp::Rcout<<" --> "<<res<<std::endl;
+
+	return res;
+}
+
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests

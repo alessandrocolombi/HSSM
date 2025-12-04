@@ -276,6 +276,13 @@ lp_coverage_post <- function(m_j, n_j, r, gamma_j, prior, prior_param, absC1, ab
     .Call(`_HSSM_lp_coverage_post`, m_j, n_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max)
 }
 
+#' 
+#' Compute the log of the peppf under Poisson prior
+#' @export
+log_peppf <- function(r, n_j, n_jk, gamma1, gamma2, Lambda, M_max) {
+    .Call(`_HSSM_log_peppf`, r, n_j, n_jk, gamma1, gamma2, Lambda, M_max)
+}
+
 #' Test ComponentPrior
 #' @export
 Test_Prior <- function() {

@@ -716,6 +716,21 @@ double lp_coverage_post( const std::vector<unsigned int>& m_j, const std::vector
 						 const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
 						 const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
 						 const unsigned int& M_max);
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	MLE 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// log_peppf
+//' 
+//' Compute the log of the peppf under Poisson prior
+//' @export
+// [[Rcpp::export]] 
+double log_peppf( const int& r, const Rcpp::IntegerVector& n_j, const Rcpp::IntegerMatrix& n_jk, 
+				  const double& gamma1, const double& gamma2, const double& Lambda, 
+				  unsigned int M_max );
+
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Tests
 //------------------------------------------------------------------------------------------------------------------------------------------------------

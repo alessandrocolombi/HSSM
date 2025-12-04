@@ -2040,7 +2040,7 @@ lp_fulljoint = function( n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1,
   if(is.null(absC2))
     absC2 = compute_logC(n_j[2], -gamma_j[2], 0.0);
 
-  return(p_fulljoint_c( n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max ))
+  return(lp_fulljoint_c( n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max ))
 
 }
 

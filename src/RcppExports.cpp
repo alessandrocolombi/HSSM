@@ -668,6 +668,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_peppf
+double log_peppf(const int& r, const Rcpp::IntegerVector& n_j, const Rcpp::IntegerMatrix& n_jk, const double& gamma1, const double& gamma2, const double& Lambda, unsigned int M_max);
+RcppExport SEXP _HSSM_log_peppf(SEXP rSEXP, SEXP n_jSEXP, SEXP n_jkSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP LambdaSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type n_jk(n_jkSEXP);
+    Rcpp::traits::input_parameter< const double& >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< const double& >::type gamma2(gamma2SEXP);
+    Rcpp::traits::input_parameter< const double& >::type Lambda(LambdaSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_peppf(r, n_j, n_jk, gamma1, gamma2, Lambda, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Test_Prior
 void Test_Prior();
 RcppExport SEXP _HSSM_Test_Prior() {
@@ -727,6 +744,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_lp_fulljoint_c", (DL_FUNC) &_HSSM_lp_fulljoint_c, 10},
     {"_HSSM_lp_fullpost_c", (DL_FUNC) &_HSSM_lp_fullpost_c, 13},
     {"_HSSM_lp_coverage_post", (DL_FUNC) &_HSSM_lp_coverage_post, 9},
+    {"_HSSM_log_peppf", (DL_FUNC) &_HSSM_log_peppf, 7},
     {"_HSSM_Test_Prior", (DL_FUNC) &_HSSM_Test_Prior, 0},
     {"_HSSM_Test_prod_sum", (DL_FUNC) &_HSSM_Test_prod_sum, 0},
     {NULL, NULL, 0}
