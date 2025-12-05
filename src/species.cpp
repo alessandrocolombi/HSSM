@@ -4132,8 +4132,190 @@ double Kpost_var_largen(	const unsigned int& k,
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
-//	1-Step ahead prediction of shared species
+//	1-Step ahead prediction of all quantities
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+Rcpp::List PrDistinct_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
+						       const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						       const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						       const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const std::vector<unsigned int> m_j(2,1);
+	// Compute log V prior
+	double log_V{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
+	// Compute log qM post (whole distribution)
+	std::vector<double> log_qMpost_vec = D_log_qM_post(qM,r, n_j, gamma_j, log_V, M_max );
+	int qMsize{log_qMpost_vec.size()};
+	// Calcolo log_Vpost
+	std::vector<double> log_Vpost0_vec(qMsize); // r 
+	std::vector<double> log_Vpost1_vec(qMsize-1); // r+1
+	for(std::size_t mstar = 0; mstar < qMsize; mstar++){
+		double lc1 = log_qMpost_vec[mstar] -
+					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) -
+					 std::log( (double)n_j[1] + gamma_j[1]*(double)(mstar+r) );
+		log_Vpost0_vec[mstar] = lc1;
+		if(mstar > 0)
+			log_Vpost1_vec[mstar-1] = lc1 + std::log( (double)mstar );
+	}
+
+	double logVpost_0 = log_stable_sum(log_Vpost0_vec, TRUE); // r
+	double logVpost_1 = log_stable_sum(log_Vpost1_vec, TRUE); // r+1
+	// double logVpost_2 ; // r+2 -> avoid to compute r+2 case
+
+	// Define logF coefficients
+	double lF_010{ std::log((double)rstar_j[1])};
+	double lF_001{ std::log((double)rstar_j[0])};
+	double lF_011{ std::log((double)rstar_j[0]) + std::log((double)rstar_j[1])};
+	double lF_111{ std::log((double)rstar_j[0]+(double)rstar_j[1]+1.0)};
+	// Define logC numbers
+	double lc_00{  std::log( (gamma_j[0]*(double)r_j[0] + (double)n_j[0]) ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_10{  std::log( gamma_j[0] ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_01{  std::log( (gamma_j[0]* (double)r_j[0] + (double)n_j[0]) ) + std::log(gamma_j[1]) };
+	double lc_11{  std::log( gamma_j[0] ) + std::log(gamma_j[1]) };
+
+	// P(K = 0 | X)
+	std::vector<double> log_p0_vec(4,-inf);
+	log_p0_vec[0] = logVpost_0 + lc_00;
+	if(rstar_j[0] > 0)
+		log_p0_vec[1] = logVpost_0 + lF_001 + lc_10; 
+	if(rstar_j[1] > 0)
+		log_p0_vec[2] = logVpost_0 + lF_010 + lc_01;
+	if(rstar_j[0] > 0 && rstar_j[1] > 0)
+		log_p0_vec[3] = logVpost_0 + lF_011 + lc_11;
+	double PrK0 = std::exp( log_stable_sum(log_p0_vec, TRUE) );
+
+	// P(K = 1 | X)
+	std::vector<double> log_p1_vec(3,-inf);
+	log_p1_vec[0] = logVpost_1 + lc_10; 
+	log_p1_vec[1] = logVpost_1 + lc_01;
+	log_p1_vec[2] = logVpost_1 + lF_111 + lc_11;
+	double PrK1 = std::exp( log_stable_sum(log_p1_vec, TRUE) );
+
+	return Rcpp::List::create( Rcpp::Named("PrK0") = PrK0,
+							   Rcpp::Named("PrK1") = PrK1,
+							   Rcpp::Named("PrK2") = 1.0 - PrK0 - PrK1,
+							   Rcpp::Named("PrK1plus") = 1.0 - PrK0
+							   );
+}
+
+Rcpp::List PrLocDistinct1_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
+						           const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						           const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						           const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const std::vector<unsigned int> m_j(2,1);
+	// Compute log V prior
+	double log_V{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
+	// Compute log qM post (whole distribution)
+	std::vector<double> log_qMpost_vec = D_log_qM_post(qM,r, n_j, gamma_j, log_V, M_max );
+	int qMsize{log_qMpost_vec.size()};
+	// Calcolo log_Vpost
+	std::vector<double> log_Vpost0_vec(qMsize); // r 
+	std::vector<double> log_Vpost1_vec(qMsize-1); // r+1
+	for(std::size_t mstar = 0; mstar < qMsize; mstar++){
+		double lc1 = log_qMpost_vec[mstar] -
+					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) -
+					 std::log( (double)n_j[1] + gamma_j[1]*(double)(mstar+r) );
+		log_Vpost0_vec[mstar] = lc1;
+		if(mstar > 0)
+			log_Vpost1_vec[mstar-1] = lc1 + std::log( (double)mstar );
+	}
+
+	double logVpost_0 = log_stable_sum(log_Vpost0_vec, TRUE); // r
+	double logVpost_1 = log_stable_sum(log_Vpost1_vec, TRUE); // r+1
+	// double logVpost_2 ; // r+2 -> avoid to compute r+2 case
+
+	// Define logF coefficients
+	double lF_010{ std::log((double)rstar_j[1])};
+	double lF_001{ std::log((double)rstar_j[0])};
+	double lF_011{ std::log((double)rstar_j[0]) + std::log((double)rstar_j[1])};
+	double lF_111{ std::log((double)rstar_j[0]+(double)rstar_j[1]+1.0)};
+	// Define logC numbers
+	double lc_00{  std::log( (gamma_j[0]*(double)r_j[0] + (double)n_j[0]) ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_10{  std::log( gamma_j[0] ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_01{  std::log( (gamma_j[0]* (double)r_j[0] + (double)n_j[0]) ) + std::log(gamma_j[1]) };
+	double lc_11{  std::log( gamma_j[0] ) + std::log(gamma_j[1]) };
+
+	// P(K1 = 0 | X)
+	std::vector<double> log_p0_vec(3,-inf);
+	log_p0_vec[0] = logVpost_0 + lc_00;
+	if(rstar_j[0] > 0)
+		log_p0_vec[1] = logVpost_0 + lF_001 + lc_01; 
+	log_p0_vec[2] = logVpost_0 + lc_01;
+	double PrK10 = std::exp( log_stable_sum(log_p0_vec, TRUE) );
+
+	return Rcpp::List::create( Rcpp::Named("PrK10") = PrK10,
+							   Rcpp::Named("PrK11") = 1.0 - PrK10,
+							   Rcpp::Named("PrK1plus") = 1.0 - PrK10
+							   );
+}
+
+Rcpp::List PrLocDistinct2_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
+						           const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						           const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						           const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+	const std::vector<unsigned int> m_j(2,1);
+	// Compute log V prior
+	double log_V{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
+	// Compute log qM post (whole distribution)
+	std::vector<double> log_qMpost_vec = D_log_qM_post(qM,r, n_j, gamma_j, log_V, M_max );
+	int qMsize{log_qMpost_vec.size()};
+	// Calcolo log_Vpost
+	std::vector<double> log_Vpost0_vec(qMsize); // r 
+	std::vector<double> log_Vpost1_vec(qMsize-1); // r+1
+	for(std::size_t mstar = 0; mstar < qMsize; mstar++){
+		double lc1 = log_qMpost_vec[mstar] -
+					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) -
+					 std::log( (double)n_j[1] + gamma_j[1]*(double)(mstar+r) );
+		log_Vpost0_vec[mstar] = lc1;
+		if(mstar > 0)
+			log_Vpost1_vec[mstar-1] = lc1 + std::log( (double)mstar );
+	}
+
+	double logVpost_0 = log_stable_sum(log_Vpost0_vec, TRUE); // r
+	double logVpost_1 = log_stable_sum(log_Vpost1_vec, TRUE); // r+1
+	// double logVpost_2 ; // r+2 -> avoid to compute r+2 case
+
+	// Define logF coefficients
+	double lF_010{ std::log((double)rstar_j[1])};
+	double lF_001{ std::log((double)rstar_j[0])};
+	double lF_011{ std::log((double)rstar_j[0]) + std::log((double)rstar_j[1])};
+	double lF_111{ std::log((double)rstar_j[0]+(double)rstar_j[1]+1.0)};
+	// Define logC numbers
+	double lc_00{  std::log( (gamma_j[0]*(double)r_j[0] + (double)n_j[0]) ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_10{  std::log( gamma_j[0] ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_01{  std::log( (gamma_j[0]* (double)r_j[0] + (double)n_j[0]) ) + std::log(gamma_j[1]) };
+	double lc_11{  std::log( gamma_j[0] ) + std::log(gamma_j[1]) };
+
+	// P(K2 = 0 | X)
+	std::vector<double> log_p0_vec(3,-inf);
+	log_p0_vec[0] = logVpost_0 + lc_00;
+	if(rstar_j[1] > 0)
+		log_p0_vec[1] = logVpost_0 + lF_010 + lc_10; 
+	log_p0_vec[2] = logVpost_0 + lc_10;
+	double PrK20 = std::exp( log_stable_sum(log_p0_vec, TRUE) );
+
+	return Rcpp::List::create( Rcpp::Named("PrK20") = PrK20,
+							   Rcpp::Named("PrK11") = 1.0 - PrK20,
+							   Rcpp::Named("PrK1plus") = 1.0 - PrK20
+							   );
+}
+
 
 Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
 						     const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,

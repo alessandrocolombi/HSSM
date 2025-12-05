@@ -651,6 +651,33 @@ double Kpost_var_largen(	const unsigned int& k,
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	1-Step ahead prediction of shared species
 //------------------------------------------------------------------------------------------------------------------------------------------------------
+// 1 step predictive distinct
+//' 
+//' Compute the 1 step prediction probabilities for new global distinct probabilities in a future sample of size (1,1)
+// [[Rcpp::export]] 
+Rcpp::List PrDistinct_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+ 						       const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						       const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						       const unsigned int& M_max );
+
+
+// 1 step predictive K1
+//' 
+//' Compute the 1 step prediction probabilities for new local distinct in the first area probabilities in a future sample of size (1,1)
+// [[Rcpp::export]] 
+Rcpp::List PrLocDistinct1_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+						           const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						           const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						           const unsigned int& M_max );
+// 1 step predictive K2
+//' 
+//' Compute the 1 step prediction probabilities for new local distinct in the second area probabilities in a future sample of size (1,1)
+// [[Rcpp::export]] 
+Rcpp::List PrLocDistinct2_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r, 
+						           const std::vector<unsigned int>& r_j, const std::vector<unsigned int>& rstar_j,
+						           const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						           const unsigned int& M_max );
+
 // 1 step predictive shared
 //' 
 //' Compute the 1 step prediction probabilities for new shared species in a future sample of size (1,1)

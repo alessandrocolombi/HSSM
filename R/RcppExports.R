@@ -253,6 +253,24 @@ p_shared_post_largen_c <- function(t, k, m_j, n_j, gamma_j, prior, prior_param, 
 }
 
 #' 
+#' Compute the 1 step prediction probabilities for new global distinct probabilities in a future sample of size (1,1)
+PrDistinct_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_PrDistinct_1step_c`, n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
+#' Compute the 1 step prediction probabilities for new local distinct in the first area probabilities in a future sample of size (1,1)
+PrLocDistinct1_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_PrLocDistinct1_1step_c`, n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
+#' Compute the 1 step prediction probabilities for new local distinct in the second area probabilities in a future sample of size (1,1)
+PrLocDistinct2_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max) {
+    .Call(`_HSSM_PrLocDistinct2_1step_c`, n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max)
+}
+
+#' 
 #' Compute the 1 step prediction probabilities for new shared species in a future sample of size (1,1)
 PrShared_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max) {
     .Call(`_HSSM_PrShared_1step_c`, n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, M_max)

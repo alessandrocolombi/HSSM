@@ -1840,7 +1840,45 @@ Rarefaction_curve_d1 = function(data, Nsort = 50, seed0 = 220424 ){
   return(res)
 }
 
+#' 1 step prediction Distinct
+#'
+#' @export
+PrDistinct_1step = function(data,gamma_j,prior,lambda,M_max){
+  data_cleaned = matrix(data[apply(data,1,sum)>0,],ncol = 2)
+  n_j = sapply(1:2,function(j){sum(data_cleaned[,j])})
+  r = nrow(data_cleaned)
+  r_j = sapply(1:2, function(j){length(which(data_cleaned[,j]>0))})
+  t = sum(r_j) - r
+  rstar_j = r_j - t
+  PrDistinct_1step_c( n_j, r, r_j, rstar_j, gamma_j, prior, list("lambda" = lambda), M_max )
+}
 
+#' 1 step prediction K1
+#'
+#' @export
+PrLocDistinct1_1step = function(data,gamma_j,prior,lambda,M_max){
+  data_cleaned = matrix(data[apply(data,1,sum)>0,],ncol = 2)
+  n_j = sapply(1:2,function(j){sum(data_cleaned[,j])})
+  r = nrow(data_cleaned)
+  r_j = sapply(1:2, function(j){length(which(data_cleaned[,j]>0))})
+  t = sum(r_j) - r
+  rstar_j = r_j - t
+  PrLocDistinct1_1step_c( n_j, r, r_j, rstar_j, gamma_j, prior, list("lambda" = lambda), M_max )
+}
+
+
+#' 1 step prediction K2
+#'
+#' @export
+PrLocDistinct2_1step = function(data,gamma_j,prior,lambda,M_max){
+  data_cleaned = matrix(data[apply(data,1,sum)>0,],ncol = 2)
+  n_j = sapply(1:2,function(j){sum(data_cleaned[,j])})
+  r = nrow(data_cleaned)
+  r_j = sapply(1:2, function(j){length(which(data_cleaned[,j]>0))})
+  t = sum(r_j) - r
+  rstar_j = r_j - t
+  PrLocDistinct2_1step_c( n_j, r, r_j, rstar_j, gamma_j, prior, list("lambda" = lambda), M_max )
+}
 
 #' 1 step prediction Shared
 #'
