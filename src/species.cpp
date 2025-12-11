@@ -4167,8 +4167,8 @@ Rcpp::List PrDistinct_1step_c( const std::vector<unsigned int>& n_j, const unsig
 	// double logVpost_2 ; // r+2 -> avoid to compute r+2 case
 
 	// Define logF coefficients
-	double lF_010{ std::log((double)rstar_j[1])};
 	double lF_001{ std::log((double)rstar_j[0])};
+	double lF_010{ std::log((double)rstar_j[1])};
 	double lF_011{ std::log((double)rstar_j[0]) + std::log((double)rstar_j[1])};
 	double lF_111{ std::log((double)rstar_j[0]+(double)rstar_j[1]+1.0)};
 	// Define logC numbers
@@ -4177,13 +4177,26 @@ Rcpp::List PrDistinct_1step_c( const std::vector<unsigned int>& n_j, const unsig
 	double lc_01{  std::log( (gamma_j[0]* (double)r_j[0] + (double)n_j[0]) ) + std::log(gamma_j[1]) };
 	double lc_11{  std::log( gamma_j[0] ) + std::log(gamma_j[1]) };
 
+
+	//Rcpp::Rcout<<" ... Debugging ... "<<std::endl;
+	//Rcpp::Rcout<<"(1) = "<< std::exp(logVpost_0 + lc_00) <<std::endl;
+	//Rcpp::Rcout<<"(2) = "<< std::exp(logVpost_0 + lc_10 + lF_010) <<std::endl;
+	//Rcpp::Rcout<<"(3) = "<< std::exp(logVpost_1 + lc_10) <<std::endl;
+	//Rcpp::Rcout<<"(4) = "<< std::exp(logVpost_0 + lc_01 + lF_001) <<std::endl;
+	//Rcpp::Rcout<<"(5) = "<< std::exp(logVpost_1 + lc_01) <<std::endl;
+	//Rcpp::Rcout<<"(6) = "<< std::exp(logVpost_0 + lc_11 + lF_011) <<std::endl;
+	//Rcpp::Rcout<<"(7) = "<< std::exp(logVpost_1 + lc_11 + lF_010) <<std::endl;
+	//Rcpp::Rcout<<"(8) = "<< std::exp(logVpost_1 + lc_11 + lF_001) <<std::endl;
+	//Rcpp::Rcout<<"(9) = "<< std::exp(logVpost_1 + lc_11 ) <<std::endl;
+
+
 	// P(K = 0 | X)
 	std::vector<double> log_p0_vec(4,-inf);
 	log_p0_vec[0] = logVpost_0 + lc_00;
 	if(rstar_j[0] > 0)
-		log_p0_vec[1] = logVpost_0 + lF_001 + lc_10; 
+		log_p0_vec[1] = logVpost_0 + lF_010 + lc_10; 
 	if(rstar_j[1] > 0)
-		log_p0_vec[2] = logVpost_0 + lF_010 + lc_01;
+		log_p0_vec[2] = logVpost_0 + lF_001 + lc_01;
 	if(rstar_j[0] > 0 && rstar_j[1] > 0)
 		log_p0_vec[3] = logVpost_0 + lF_011 + lc_11;
 	double PrK0 = std::exp( log_stable_sum(log_p0_vec, TRUE) );
@@ -4250,13 +4263,10 @@ Rcpp::List PrLocDistinct1_1step_c( const std::vector<unsigned int>& n_j, const u
 	log_p0_vec[0] = logVpost_0 + lc_00;
 	if(rstar_j[0] > 0)
 		log_p0_vec[1] = logVpost_0 + lF_001 + lc_01; 
-	log_p0_vec[2] = logVpost_0 + lc_01;
+	log_p0_vec[2] = logVpost_1 + lc_01;
 	double PrK10 = std::exp( log_stable_sum(log_p0_vec, TRUE) );
 
-	return Rcpp::List::create( Rcpp::Named("PrK10") = PrK10,
-							   Rcpp::Named("PrK11") = 1.0 - PrK10,
-							   Rcpp::Named("PrK1plus") = 1.0 - PrK10
-							   );
+	return Rcpp::List::create( Rcpp::Named("PrK1_0") = PrK10, Rcpp::Named("PrK1_1") = 1.0 - PrK10 );
 }
 
 Rcpp::List PrLocDistinct2_1step_c( const std::vector<unsigned int>& n_j, const unsigned int& r,
@@ -4306,14 +4316,11 @@ Rcpp::List PrLocDistinct2_1step_c( const std::vector<unsigned int>& n_j, const u
 	std::vector<double> log_p0_vec(3,-inf);
 	log_p0_vec[0] = logVpost_0 + lc_00;
 	if(rstar_j[1] > 0)
-		log_p0_vec[1] = logVpost_0 + lF_010 + lc_10; 
-	log_p0_vec[2] = logVpost_0 + lc_10;
+		log_p0_vec[1] = logVpost_0 + lF_010 + lc_10;  
+	log_p0_vec[2] = logVpost_1 + lc_10;
 	double PrK20 = std::exp( log_stable_sum(log_p0_vec, TRUE) );
 
-	return Rcpp::List::create( Rcpp::Named("PrK20") = PrK20,
-							   Rcpp::Named("PrK11") = 1.0 - PrK20,
-							   Rcpp::Named("PrK1plus") = 1.0 - PrK20
-							   );
+	return Rcpp::List::create( Rcpp::Named("PrK2_0") = PrK20, Rcpp::Named("PrK2_1") = 1.0 - PrK20 );
 }
 
 
