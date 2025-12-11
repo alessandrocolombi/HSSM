@@ -722,6 +722,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_eppf
+double log_eppf(const int& n, const int& r, const std::vector<int>& n_k, const double& gamma, const double& Lambda, unsigned int M_max);
+RcppExport SEXP _HSSM_log_eppf(SEXP nSEXP, SEXP rSEXP, SEXP n_kSEXP, SEXP gammaSEXP, SEXP LambdaSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type n_k(n_kSEXP);
+    Rcpp::traits::input_parameter< const double& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type Lambda(LambdaSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_eppf(n, r, n_k, gamma, Lambda, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_peppf
 double log_peppf(const int& r, const Rcpp::IntegerVector& n_j, const Rcpp::IntegerMatrix& n_jk, const double& gamma1, const double& gamma2, const double& Lambda, unsigned int M_max);
 RcppExport SEXP _HSSM_log_peppf(SEXP rSEXP, SEXP n_jSEXP, SEXP n_jkSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP LambdaSEXP, SEXP M_maxSEXP) {
@@ -801,6 +817,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_lp_fulljoint_c", (DL_FUNC) &_HSSM_lp_fulljoint_c, 10},
     {"_HSSM_lp_fullpost_c", (DL_FUNC) &_HSSM_lp_fullpost_c, 13},
     {"_HSSM_lp_coverage_post", (DL_FUNC) &_HSSM_lp_coverage_post, 9},
+    {"_HSSM_log_eppf", (DL_FUNC) &_HSSM_log_eppf, 6},
     {"_HSSM_log_peppf", (DL_FUNC) &_HSSM_log_peppf, 7},
     {"_HSSM_Test_Prior", (DL_FUNC) &_HSSM_Test_Prior, 0},
     {"_HSSM_Test_prod_sum", (DL_FUNC) &_HSSM_Test_prod_sum, 0},

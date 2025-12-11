@@ -748,6 +748,14 @@ double lp_coverage_post( const std::vector<unsigned int>& m_j, const std::vector
 //	MLE 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// log_eppf
+//' 
+//' Compute the log of the eppf under Poisson prior. This works only in the exchangeable case (d=1) 
+//' @export
+// [[Rcpp::export]] 
+double log_eppf( const int& n, const int& r, const std::vector<int>& n_k, 
+				 const double& gamma, const double& Lambda, unsigned int M_max );
+
 // log_peppf
 //' 
 //' Compute the log of the peppf under Poisson prior

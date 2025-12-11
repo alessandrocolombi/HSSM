@@ -4625,6 +4625,87 @@ double lp_coverage_post( const std::vector<unsigned int>& m_j, const std::vector
 //	MLE 
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// (a) - Exchangeable case (d=1)
+double log_eppf( const int& n, const int& r, const std::vector<int>& n_k, 
+				 const double& gamma, const double& Lambda, unsigned int M_max )
+{
+	double inf = std::numeric_limits<double>::infinity();
+
+	// Check n and r
+	if(n < 1)
+		throw std::runtime_error("Error in log_eppf: n must be at least one");
+	if(r < 1)
+		throw std::runtime_error("Error in log_eppf: r must be at least one");
+	if(r > n)
+		throw std::runtime_error("Error in log_eppf: r must be smaller or equal to n");
+	// if here, 1 <= r <= n 
+
+	// Check n_k
+	if(n_k.size() != r)
+		throw std::runtime_error("Error in log_eppf: the length of n_k must match the number of species r");
+	std::for_each(n_k.cbegin(), n_k.cend(), [](const int& x){ 
+		if(x<=0)
+			throw std::runtime_error("Error in log_eppf: invalid number of species");  
+	});
+
+	// Check parameters
+	if(M_max < 1 || M_max > 10000)
+		throw std::runtime_error("Error in log_eppf: invalid number of M_max ");
+	if(gamma < 1e-16){
+		Rcpp::Rcout<<"Caso proibito"<<std::endl;
+		return -std::exp(20);
+	}
+	if(Lambda < 0){
+		Rcpp::Rcout<<"Caso proibito"<<std::endl;
+		return -std::exp(20);
+	}
+
+	// Auxiliary functions 
+	std::vector<unsigned int> n_vec(1,n); 
+	std::vector<double> gamma_vec(1,gamma);
+	// Define qM prior
+	Rcpp::String prior = "Poisson"; 
+	Rcpp::List prior_param = Rcpp::List::create(Rcpp::Named("lambda") = Lambda); // <-- using the current value of the parameters
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	
+	double logV = compute_log_Vprior(r, n_vec, gamma_vec, qM, M_max ); // compute log_V
+	double res{logV};
+	for(std::size_t j = 0; j < n_k.size(); j++){
+		res += log_raising_factorial(n_k[j], gamma); 
+	}
+	if(res > 0){
+		// increase M_max and repeat
+		log_eppf( n, r, n_k, gamma, Lambda, 2*M_max );
+
+		//Check for User Interruption
+		try{
+		    Rcpp::checkUserInterrupt();
+		}
+		catch(Rcpp::internal::InterruptedException e){
+		    //Print error and return
+		    throw std::runtime_error("Execution stopped by the user");
+		}
+
+	}
+	if( res == inf || std::isnan(res) || res == -inf){
+		Rcpp::Rcout<<"Error in log_eppf: NaN, Inf or -Inf returned "<<std::endl;
+		Rcpp::Rcout<<"res = "<<res<<std::endl;
+		Rcpp::Rcout<<"logV = "<<logV<<std::endl;
+		Rcpp::Rcout<<"gamma = "<<gamma<<std::endl;
+		Rcpp::Rcout<<"Lambda = "<<Lambda<<std::endl;
+		Rcpp::Rcout<<"n = "<<n<<std::endl;
+		Rcpp::Rcout<<"r = "<<r<<std::endl;
+		Rcpp::Rcout<<"Stampo n_k: ";		
+		for(auto __v : n_k)
+			Rcpp::Rcout<<__v<<", ";
+		Rcpp::Rcout<<std::endl;
+		throw std::runtime_error("Error ");
+	}
+	return res;
+}
+
+// (b) - Par. Exchangeable case (d=2)
 double log_peppf( const int& r,  const Rcpp::IntegerVector& n_j, const Rcpp::IntegerMatrix& n_jk, 
 				  const double& gamma1, const double& gamma2, const double& Lambda, 
 				  unsigned int M_max )
