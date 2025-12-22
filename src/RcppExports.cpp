@@ -660,6 +660,79 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// PrNextDistinct_d1_c
+Rcpp::List PrNextDistinct_d1_c(const unsigned int& n, const unsigned int& r, const double& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, const unsigned int& M_max);
+RcppExport SEXP _HSSM_PrNextDistinct_d1_c(SEXP nSEXP, SEXP rSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const double& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(PrNextDistinct_d1_c(n, r, gamma, prior, prior_param, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PrSh0_c
+double PrSh0_c(const std::vector<unsigned int>& n_j, const std::vector<unsigned int>& m_j, const unsigned int& r, const std::vector<unsigned int>& r_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2, const unsigned int& M_max);
+RcppExport SEXP _HSSM_PrSh0_c(SEXP n_jSEXP, SEXP m_jSEXP, SEXP rSEXP, SEXP r_jSEXP, SEXP gamma_jSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP absC1SEXP, SEXP absC2SEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type m_j(m_jSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type r_j(r_jSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma_j(gamma_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type absC1(absC1SEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type absC2(absC2SEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(PrSh0_c(n_j, m_j, r, r_j, gamma_j, prior, prior_param, absC1, absC2, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PrDistinct0_c
+double PrDistinct0_c(const std::vector<unsigned int>& n_j, const std::vector<unsigned int>& m_j, const unsigned int& r, const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2, const unsigned int& M_max);
+RcppExport SEXP _HSSM_PrDistinct0_c(SEXP n_jSEXP, SEXP m_jSEXP, SEXP rSEXP, SEXP gamma_jSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP absC1SEXP, SEXP absC2SEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const std::vector<unsigned int>& >::type m_j(m_jSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type gamma_j(gamma_jSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type absC1(absC1SEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type absC2(absC2SEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(PrDistinct0_c(n_j, m_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PrDistinct0_d1_c
+double PrDistinct0_d1_c(const unsigned int& n_j, const unsigned int& m_j, const unsigned int& r_j, const double& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param, const Rcpp::NumericVector& absCj, const unsigned int& M_max);
+RcppExport SEXP _HSSM_PrDistinct0_d1_c(SEXP n_jSEXP, SEXP m_jSEXP, SEXP r_jSEXP, SEXP gammaSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP absCjSEXP, SEXP M_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int& >::type n_j(n_jSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type m_j(m_jSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type r_j(r_jSEXP);
+    Rcpp::traits::input_parameter< const double& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::String& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type prior_param(prior_paramSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type absCj(absCjSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type M_max(M_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(PrDistinct0_d1_c(n_j, m_j, r_j, gamma, prior, prior_param, absCj, M_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lp_fulljoint_c
 double lp_fulljoint_c(const std::vector<unsigned int>& n_j, const unsigned int& r, const std::vector<unsigned int>& r_j, const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param, double log_V, const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2, const unsigned int& M_max);
 RcppExport SEXP _HSSM_lp_fulljoint_c(SEXP n_jSEXP, SEXP rSEXP, SEXP r_jSEXP, SEXP gamma_jSEXP, SEXP priorSEXP, SEXP prior_paramSEXP, SEXP log_VSEXP, SEXP absC1SEXP, SEXP absC2SEXP, SEXP M_maxSEXP) {
@@ -814,6 +887,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HSSM_PrLocDistinct1_1step_c", (DL_FUNC) &_HSSM_PrLocDistinct1_1step_c, 8},
     {"_HSSM_PrLocDistinct2_1step_c", (DL_FUNC) &_HSSM_PrLocDistinct2_1step_c, 8},
     {"_HSSM_PrShared_1step_c", (DL_FUNC) &_HSSM_PrShared_1step_c, 8},
+    {"_HSSM_PrNextDistinct_d1_c", (DL_FUNC) &_HSSM_PrNextDistinct_d1_c, 6},
+    {"_HSSM_PrSh0_c", (DL_FUNC) &_HSSM_PrSh0_c, 10},
+    {"_HSSM_PrDistinct0_c", (DL_FUNC) &_HSSM_PrDistinct0_c, 9},
+    {"_HSSM_PrDistinct0_d1_c", (DL_FUNC) &_HSSM_PrDistinct0_d1_c, 8},
     {"_HSSM_lp_fulljoint_c", (DL_FUNC) &_HSSM_lp_fulljoint_c, 10},
     {"_HSSM_lp_fullpost_c", (DL_FUNC) &_HSSM_lp_fullpost_c, 13},
     {"_HSSM_lp_coverage_post", (DL_FUNC) &_HSSM_lp_coverage_post, 9},

@@ -277,6 +277,33 @@ PrShared_1step_c <- function(n_j, r, r_j, rstar_j, gamma_j, prior, prior_param, 
 }
 
 #' 
+#' Compute the 1 step prediction probability for new distinct species in a future sample of size (1)
+PrNextDistinct_d1_c <- function(n, r, gamma, prior, prior_param, M_max) {
+    .Call(`_HSSM_PrNextDistinct_d1_c`, n, r, gamma, prior, prior_param, M_max)
+}
+
+#' 
+#' Compute the (m1,m2) step prediction probabilities of observing 0 new shared species 
+#' @export
+PrSh0_c <- function(n_j, m_j, r, r_j, gamma_j, prior, prior_param, absC1, absC2, M_max) {
+    .Call(`_HSSM_PrSh0_c`, n_j, m_j, r, r_j, gamma_j, prior, prior_param, absC1, absC2, M_max)
+}
+
+#' 
+#' Compute the (m1,m2) step prediction probabilities of observing 0 new distinct species 
+#' @export
+PrDistinct0_c <- function(n_j, m_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max) {
+    .Call(`_HSSM_PrDistinct0_c`, n_j, m_j, r, gamma_j, prior, prior_param, absC1, absC2, M_max)
+}
+
+#' 
+#' Compute the (m) step prediction probability of observing 0 new distinct species in a single area
+#' @export
+PrDistinct0_d1_c <- function(n_j, m_j, r_j, gamma, prior, prior_param, absCj, M_max) {
+    .Call(`_HSSM_PrDistinct0_d1_c`, n_j, m_j, r_j, gamma, prior, prior_param, absCj, M_max)
+}
+
+#' 
 #' Compute the logarithm of the the full joint prior probability. Cnumbers are passed as an input
 lp_fulljoint_c <- function(n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max) {
     .Call(`_HSSM_lp_fulljoint_c`, n_j, r, r_j, gamma_j, prior, prior_param, log_V, absC1, absC2, M_max)

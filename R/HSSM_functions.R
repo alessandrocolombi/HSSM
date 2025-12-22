@@ -1894,6 +1894,16 @@ PrShared_1step = function(data,gamma_j,prior,lambda,M_max){
 }
 
 
+#' Single area 1 step prediction
+#'
+#' @export
+PrNextDistinct_d1 = function(data,gamma,prior,lambda,M_max){
+  data = as.numeric(data)
+  data = data[data > 0]
+  n = sum(data)
+  r = length(data)
+  PrNextDistinct_d1_c( n, r, gamma, prior, list("lambda" = lambda), M_max )
+}
 
 
 #' Training and Testing

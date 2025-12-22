@@ -4387,6 +4387,150 @@ Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigne
 							   );
 }
 
+
+Rcpp::List PrNextDistinct_d1_c( const unsigned int& n, const unsigned int& r,
+						        const double& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						        const unsigned int& M_max )
+{
+	const double inf{std::numeric_limits<double>::infinity()};
+	if(gamma <= 0)
+		return -1.0; // check
+
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	//Rcpp::Rcout<<"Selected prior is --> "<<qM.showMe()<<std::endl;
+
+	// Auxiliary functions 
+	std::vector<unsigned int> n_vec(1,n); 
+	std::vector<unsigned int> nplus1_vec(1,n+1); 
+	std::vector<double> gamma_vec(1,gamma);
+	
+	// Compute log V prior : V_n^r and V_{n+1}^{r+1}
+	double logV_nr = compute_log_Vprior(r, n_vec, gamma_vec, qM, M_max ); 
+	double logV_nplus1r = compute_log_Vprior(r+1, nplus1_vec, gamma_vec, qM, M_max ); 
+	
+	// P(K = 1 | X), next is new
+	double log_prob = logV_nplus1r - logV_nr;
+	log_prob += std::log(gamma);
+	double PrNew = std::exp( log_prob );
+	
+	/*
+	// Compute log qM post (whole distribution)
+	std::vector<double> log_qMpost_vec = D_log_qM_post(qM,r, n_j, gamma_j, log_V, M_max );
+	int qMsize{log_qMpost_vec.size()};
+	// Calcolo log_Vpost
+	std::vector<double> log_Vpost0_vec(qMsize); // r 
+	std::vector<double> log_Vpost1_vec(qMsize-1); // r+1
+	for(std::size_t mstar = 0; mstar < qMsize; mstar++){
+		double lc1 = log_qMpost_vec[mstar] -
+					 std::log( (double)n_j[0] + gamma_j[0]*(double)(mstar+r) ) -
+					 std::log( (double)n_j[1] + gamma_j[1]*(double)(mstar+r) );
+		log_Vpost0_vec[mstar] = lc1;
+		if(mstar > 0)
+			log_Vpost1_vec[mstar-1] = lc1 + std::log( (double)mstar );
+	}
+
+	double logVpost_0 = log_stable_sum(log_Vpost0_vec, TRUE); // r
+	double logVpost_1 = log_stable_sum(log_Vpost1_vec, TRUE); // r+1
+	// double logVpost_2 ; // r+2 -> avoid to compute r+2 case
+
+	// Define logF coefficients
+	double lF_010{ std::log((double)rstar_j[1])};
+	double lF_001{ std::log((double)rstar_j[0])};
+	double lF_011{ std::log((double)rstar_j[0]) + std::log((double)rstar_j[1])};
+	double lF_111{ std::log((double)rstar_j[0]+(double)rstar_j[1]+1.0)};
+	// Define logC numbers
+	double lc_00{  std::log( (gamma_j[0]*(double)r_j[0] + (double)n_j[0]) ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_10{  std::log( gamma_j[0] ) + std::log( (gamma_j[1]*(double)r_j[1] + (double)n_j[1]) )};
+	double lc_01{  std::log( (gamma_j[0]* (double)r_j[0] + (double)n_j[0]) ) + std::log(gamma_j[1]) };
+	double lc_11{  std::log( gamma_j[0] ) + std::log(gamma_j[1]) };
+	*/
+
+	return Rcpp::List::create( Rcpp::Named("PrOld") = 1.0 - PrNew, Rcpp::Named("PrNew") = PrNew );
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	(m1,m2)-Steps ahead prediction of all quantities
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+double PrSh0_c( const std::vector<unsigned int>& n_j, const std::vector<unsigned int>& m_j, 
+				const unsigned int& r, const std::vector<unsigned int>& r_j,
+			    const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+			    const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+				const unsigned int& M_max)
+{
+	//const double inf{std::numeric_limits<double>::infinity()};
+	if(absC1.size() != m_j[0]+1)
+		throw std::runtime_error("Error in PrSh0_c: the length of absC1 must be m_j[0] + 1");
+	if(absC2.size() != m_j[1]+1)
+		throw std::runtime_error("Error in PrSh0_c: the length of absC2 must be m_j[1] + 1");
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	// Compute log( V^{r}_{n1,n2} )
+	double log_V_den{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
+	double res{0.0};
+	std::vector<unsigned int> nm_j(2);
+	nm_j[0] = n_j[0] + m_j[0]; nm_j[1] = n_j[1] + m_j[1];
+
+	for(int k1 = 0; k1 <= m_j[0]; k1++){
+		for(int k2 = 0; k2 <= m_j[1]; k2++){
+			double log_V_num{ compute_log_Vprior(r+k1+k2, nm_j, gamma_j, qM, M_max ) };
+			res += std::exp( log_V_num - log_V_den + absC1[k1] + absC2[k2] );
+		}
+	}
+
+	return res;
+}
+
+double PrDistinct0_c( const std::vector<unsigned int>& n_j, const std::vector<unsigned int>& m_j, 
+				      const unsigned int& r, 
+			          const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+			          const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+				      const unsigned int& M_max)
+{
+	if(absC1.size() != m_j[0]+1)
+		throw std::runtime_error("Error in PrDistinct0_c: the length of absC1 must be m_j[0] + 1");
+	if(absC2.size() != m_j[1]+1)
+		throw std::runtime_error("Error in PrDistinct0_c: the length of absC2 must be m_j[1] + 1");
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	std::vector<unsigned int> nm_j(2);
+	nm_j[0] = n_j[0] + m_j[0]; nm_j[1] = n_j[1] + m_j[1];
+	
+	double log_V_den{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
+	double log_V_num{ compute_log_Vprior(r, nm_j, gamma_j, qM, M_max+100 ) };
+	double res =  std::exp( log_V_num - log_V_den + absC1[0] + absC2[0] );
+
+	return res;
+}
+
+double PrDistinct0_d1_c( const unsigned int& n_j, const unsigned int& m_j, 
+				         const unsigned int& r_j, 
+			             const double& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,
+			             const Rcpp::NumericVector& absCj, const unsigned int& M_max)
+{
+	if(absCj.size() != m_j+1)
+		throw std::runtime_error("Error in PrDistinct0_d1_c: the length of absCj must be m_j + 1");
+	// Component prior preliminary operations
+	auto qM_ptr = Wrapper_ComponentPrior(prior, prior_param);
+	ComponentPrior& qM(*qM_ptr);
+	unsigned int nm_j = n_j + m_j;	
+
+	// Auxiliary quantities
+	std::vector<unsigned int> n_j_vec(1,n_j); 
+	std::vector<unsigned int> nm_j_vec(1,nm_j); 
+	std::vector<double> gamma_vec(1,gamma);
+
+	double log_V_den{ compute_log_Vprior(r_j, n_j_vec, gamma_vec, qM, M_max ) };
+	double log_V_num{ compute_log_Vprior(r_j, nm_j_vec, gamma_vec, qM, M_max+100 ) };
+	double res =  std::exp( log_V_num - log_V_den + absCj[0] );
+
+	return res;
+}
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Full joint prior
 //------------------------------------------------------------------------------------------------------------------------------------------------------

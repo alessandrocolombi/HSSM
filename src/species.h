@@ -687,6 +687,48 @@ Rcpp::List PrShared_1step_c( const std::vector<unsigned int>& n_j, const unsigne
 						     const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
 						     const unsigned int& M_max );
 
+// Single area 1 step predictive 
+//' 
+//' Compute the 1 step prediction probability for new distinct species in a future sample of size (1)
+// [[Rcpp::export]] 
+Rcpp::List PrNextDistinct_d1_c( const unsigned int& n, const unsigned int& r,
+						        const double& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,
+						        const unsigned int& M_max );
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//	(m1,m2)-Steps ahead prediction of all quantities
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+// m step zero shared
+//' 
+//' Compute the (m1,m2) step prediction probabilities of observing 0 new shared species 
+//' @export
+// [[Rcpp::export]] 
+double PrSh0_c( const std::vector<unsigned int>& n_j, const std::vector<unsigned int>& m_j, 
+				const unsigned int& r, const std::vector<unsigned int>& r_j,
+			    const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+			    const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+				const unsigned int& M_max);
+
+// m step zero distinct
+//' 
+//' Compute the (m1,m2) step prediction probabilities of observing 0 new distinct species 
+//' @export
+// [[Rcpp::export]] 
+double PrDistinct0_c( const std::vector<unsigned int>& n_j, const std::vector<unsigned int>& m_j, 
+				      const unsigned int& r, 
+			          const std::vector<double>& gamma_j, const Rcpp::String& prior, const Rcpp::List& prior_param,
+			          const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
+				      const unsigned int& M_max);
+
+// m step zero disintinct (single area)
+//' 
+//' Compute the (m) step prediction probability of observing 0 new distinct species in a single area
+//' @export
+// [[Rcpp::export]] 
+double PrDistinct0_d1_c( const unsigned int& n_j, const unsigned int& m_j, 
+				         const unsigned int& r_j, 
+			             const double& gamma, const Rcpp::String& prior, const Rcpp::List& prior_param,
+			             const Rcpp::NumericVector& absCj, const unsigned int& M_max);
 //------------------------------------------------------------------------------------------------------------------------------------------------------
 //	Full joint prior
 //------------------------------------------------------------------------------------------------------------------------------------------------------
