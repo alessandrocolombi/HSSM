@@ -4460,7 +4460,9 @@ double PrSh0_c( const std::vector<unsigned int>& n_j, const std::vector<unsigned
 			    const Rcpp::NumericVector& absC1, const Rcpp::NumericVector& absC2,
 				const unsigned int& M_max)
 {
-	//const double inf{std::numeric_limits<double>::infinity()};
+	const double inf{std::numeric_limits<double>::infinity()};
+	if(m_j.size() != 2)
+		throw std::runtime_error("Error in PrSh0_c: m_j must be of size 2");
 	if(absC1.size() != m_j[0]+1)
 		throw std::runtime_error("Error in PrSh0_c: the length of absC1 must be m_j[0] + 1");
 	if(absC2.size() != m_j[1]+1)
@@ -4470,13 +4472,21 @@ double PrSh0_c( const std::vector<unsigned int>& n_j, const std::vector<unsigned
 	ComponentPrior& qM(*qM_ptr);
 	// Compute log( V^{r}_{n1,n2} )
 	double log_V_den{ compute_log_Vprior(r, n_j, gamma_j, qM, M_max ) };
-	double res{0.0};
-	std::vector<unsigned int> nm_j(2);
+	
+	// Compute log( V^{r+j}_{n1+m1,n2+m2} ), for j = 0,1,...,m_j[0]+m_j[1]
+	std::vector<unsigned int> nm_j(2); // auxiliary vector, nm_j = n_j + m_j
 	nm_j[0] = n_j[0] + m_j[0]; nm_j[1] = n_j[1] + m_j[1];
 
+	std::vector<double> logV_vec(1+m_j[0]+m_j[1]);
+	for(int j = 0; j <= m_j[0]+m_j[1]; j++){
+		logV_vec[j] = compute_log_Vprior(r+j, nm_j, gamma_j, qM, M_max );
+	}
+
+	// Run main loop
+	double res{0.0};
 	for(int k1 = 0; k1 <= m_j[0]; k1++){
 		for(int k2 = 0; k2 <= m_j[1]; k2++){
-			double log_V_num{ compute_log_Vprior(r+k1+k2, nm_j, gamma_j, qM, M_max ) };
+			double log_V_num = logV_vec[k1+k2]; //{ compute_log_Vprior(r+k1+k2, nm_j, gamma_j, qM, M_max ) };
 			res += std::exp( log_V_num - log_V_den + absC1[k1] + absC2[k2] );
 		}
 	}
